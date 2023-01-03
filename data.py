@@ -11,7 +11,7 @@ from win32com.client import pythoncom, VARIANT
 
 # q = win32com.client.Dispatch("REDI.Query")
 
-ek.set_app_key('71f602a117a3487e82c765770a9e310c78cdc613')
+# ek.set_app_key('71f602a117a3487e82c765770a9e310c78cdc613')
 # ek.set_log_level(logging.DEBUG)
 
 requestId = 0
@@ -32,6 +32,7 @@ class Data:
         # self.start_date = (date.today() - timedelta(days=4)).strftime('%Y-%m-%d')
         self.end_date = datetime.now().replace(microsecond=0, second=0).strftime('%Y-%m-%dT%H:%M:%S')
         self.app = kwargs.get('app', None)
+        self.account = kwargs.get('account', '')
 
     def requestDataEikon(self, interval, data_timezone=pytz.timezone('America/Chicago'), fields=None, parameters=None):
         """Returns a dataframe with bars of the length set my the interval parameter. Gets a timeseries from
@@ -99,13 +100,23 @@ class Data:
         #         df['CLOSE'][-1], int(df['VOLUME'].sum())]
         return [df['CLOSE'][-1]]
 
-    def requestDataIBAPI(self, ib_contract, interval, contract):
+    def requestDataIBAPI(self, ib_contract, interval, contract, type='TRADES'):
         req_id = next_request_id()
         contract.data_id = req_id
         self.app.idMap[req_id] = ib_contract.symbol
         self.app.barData[req_id] = []
         self.app.timezones[req_id] = contract.timezone
-        self.app.reqHistoricalData(req_id, ib_contract, '', '4 D', str(interval) + ' mins', 'TRADES', 0, 1,
+        self.app.reqHistoricalData(req_id, ib_contract, '', '4 D', str(interval) + ' mins', type, 0, 1,
+                                   False, [])
+
+
+    def requestLongDataIBAPI(self, ib_contract, interval, contract):
+        req_id = next_request_id()
+        contract.data_id = req_id
+        self.app.idMap[req_id] = ib_contract.symbol
+        self.app.barData[req_id] = []
+        self.app.timezones[req_id] = contract.timezone
+        self.app.reqHistoricalData(req_id, ib_contract, '', '1 M', str(interval) + ' mins', 'MIDPOINT', 0, 1,
                                    False, [])
 
     def requestVolumeIBAPI(self, ib_contract, contract):
@@ -116,45 +127,67 @@ class Data:
         self.app.reqHistoricalData(req_id, ib_contract, '', '1 W', '1 day', 'TRADES', 0, 1,
                                    False, [])
 
-    def request_position(self):
+    def request_position(self, source):
         """For non-stock contracts, request positions from the REDI API. Takes a dictionary of tickers and their
         contracts as input and the account the contracts belong to.
         For stock contracts request the position from SRSE
         """
-        q = win32com.client.Dispatch("REDI.Query", pythoncom.CoInitialize())
+        if source == "REDI":
+            q = win32com.client.Dispatch("REDI.Query", pythoncom.CoInitialize())
 
-        # Prepare a variable which can handle returned values from submit method of the order object.
-        row = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
-        cellVar = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
-        cellVal = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
-        retVar = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            # Prepare a variable which can handle returned values from submit method of the order object.
+            row = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            cellVar = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            cellVal = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            retVar = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
 
-        # add watch on accounts
-        myaccounts = [self.contract.account]
-        for account in myaccounts:
-            tmpVal = q.AddWatch("2", "", account, retVar)
+            # add watch on accounts
+            myaccounts = [self.contract.account]
+            for account in myaccounts:
+                tmpVal = q.AddWatch("2", "", account, retVar)
 
-        # Prepare the query
-        vTable = "Position"
-        vWhere = "true"
-        tmpVal = q.Submit(vTable, vWhere, retVar)
+            # Prepare the query
+            vTable = "Position"
+            vWhere = "true"
+            tmpVal = q.Submit(vTable, vWhere, retVar)
 
-        for i in range(0, q.RowCount):  # Iterate through every row of the table
-            cellVar.value = "Symbol"
-            ret = q.GetCell(i, cellVar, cellVal, retVar)
-            ticker = cellVal.value
-            if ticker != self.tick:
-                continue
+            for i in range(0, q.RowCount):  # Iterate through every row of the table
+                cellVar.value = "Symbol"
+                ret = q.GetCell(i, cellVar, cellVal, retVar)
+                ticker = cellVal.value
+                if ticker != self.tick:
+                    continue
 
-            cellVar.value = "Position"
-            ret = q.GetCell(i, cellVar, cellVal, retVar)
-            position = cellVal.value
-            self.contract.position = position
+                cellVar.value = "Position"
+                ret = q.GetCell(i, cellVar, cellVal, retVar)
+                position = cellVal.value
+                self.contract.position = position
 
-            cellVar.value = "PandL"
-            ret = q.GetCell(i, cellVar, cellVal, retVar)
-            self.contract.pnl = cellVal.value
+                cellVar.value = "PandL"
+                ret = q.GetCell(i, cellVar, cellVal, retVar)
+                self.contract.pnl = cellVal.value
+        elif source == "TWS":
+            app = self.app
+            app.reqPositions()
+            try:
+                if self.tick in app.positions.index:
+                    self.contract.position = app.positions.loc[self.tick, "Position"]
+            except IndexError:
+                pass
 
+    def request_pnl(self, source):
+        if source == 'TWS':
+            req_id = next_request_id()
+            self.app.reqPnL(req_id, self.account, '')
+            t.sleep(0.25)
+        pass
+
+    def request_pnl_single(self, source):
+        if source == 'TWS':
+            req_id = next_request_id()
+            self.app.idMap[req_id] = self.tick
+            self.app.reqPnLSingle(req_id, self.account, "", self.contract.conId)
+        pass
 
 
 if __name__ == '__main__':

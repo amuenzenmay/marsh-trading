@@ -13,22 +13,25 @@ from ibapi.client import EClient
 from ibapi.common import TickerId
 from ibapi.contract import Contract
 import threading
+
+from ibapi.order import Order
 from ibapi.wrapper import EWrapper
 
 import util
 
 
 class Connection:
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self.live = kwargs.get("live", True)
         self.app = IBapi()
         self.start_connection()
 
     def run_loop(self):
         self.app.run()
 
-    def start_connection(self, liveAccount=True):
+    def start_connection(self):
         self.app.nextorderId = None
-        if liveAccount:
+        if self.live:
             port = 7496
         else:
             port = 7497
@@ -60,7 +63,9 @@ class IBapi(EWrapper, EClient):
         self.timezone = {}
         self.volume_request = True
         self.timezones = {}  # 'America/Chicago'
-
+        self.positions = pd.DataFrame([], columns=['Position', 'Average Cost'])
+        self.tws_pnl = pd.DataFrame([], columns=['Daily', 'Realized', 'Unrealized'])
+        self.single_pnl = pd.DataFrame([], columns=['Daily', 'Unrealized', 'Realized', 'Value'])
 
     def error(self, reqId: TickerId, errorCode: int, errorString: str):
         super().error(reqId, errorCode, errorString)
@@ -106,19 +111,38 @@ class IBapi(EWrapper, EClient):
         self.dataTimes[symbol] = data_range
         return contract
 
+    def crypto_contract(self, symbol, secType='CRYPTO', exchange='PAXOS', currency='USD', con_id=0,
+                       data_range=(None, None)):
+        contract = Contract()
+        contract.symbol = symbol
+        contract.secType = secType
+        contract.exchange = exchange
+        contract.currency = currency
+        contract.id = con_id
+        contract.data_range = data_range
+        self.dataTimes[symbol] = data_range
+
+        return contract
+
     def nextReqId(self):
         """Returns a unique ID for data requests."""
         self.reqid += 1
         return self.reqid
 
     def startEndBars(self, reqId: int):
-        symbol = self.idMap[reqId]
-        if symbol in self.dataTimes.keys():
-            if None in self.dataTimes[symbol]:
+        try:
+            symbol = self.idMap[reqId]
+            if symbol in self.dataTimes.keys():
+                if None in self.dataTimes[symbol]:
+                    return None
+                return self.dataTimes[symbol]
+            else:
                 return None
-            return self.dataTimes[symbol]
-        else:
+        except KeyError:
             return None
+
+    # def historicalData(self, reqId, bar):
+    #     print("Date: ", bar.date, "\tClose: ", bar.close)
 
     def historicalData(self, reqId, bar):
         barDate = pd.to_datetime(bar.date)
@@ -134,7 +158,6 @@ class IBapi(EWrapper, EClient):
                 endBar = time(hour=12, minute=0)  # This bar time DOES get included
             if startBar <= barDate.time() <= endBar:
                 self.barData[reqId].append([barDate, bar.close, bar.volume])
-
 
     def historicalDataUpdate(self, reqId, bar):
         self.barDF[reqId].loc[pd.to_datetime(bar.date)] = bar.close
@@ -153,3 +176,29 @@ class IBapi(EWrapper, EClient):
             util.exception_alert(e, self.idMap[reqId])
             self.barDF[reqId] = pd.DataFrame(data=self.barData[reqId], columns=['Date', 'Close'])
             self.barDF[reqId]['Date'] = pd.to_datetime(self.barDF[reqId]['Date'])
+
+    def position(self, account, contract, pos, avgCost):
+        index = str(contract.localSymbol)
+        self.positions.loc[index] = pos, avgCost
+
+    def pnl(self, reqId: int, dailyPnL: float, unrealizedPnL: float, realizedPnL: float):
+        self.tws_pnl.loc[reqId] = dailyPnL, realizedPnL, unrealizedPnL
+
+    def pnlSingle(self, reqId: int, pos: int, dailyPnL: float, unrealizedPnL: float, realizedPnL: float, value: float):
+        try:
+            self.single_pnl.loc[self.idMap[reqId]] = dailyPnL, unrealizedPnL, realizedPnL, value
+        except IndexError:
+            self.single_pnl.loc[reqId] = dailyPnL, unrealizedPnL, realizedPnL, value
+
+    @staticmethod
+    def create_order(direction, qty, orderType, transmit=True, lmtPrice=sys.float_info.max):
+        order = Order()
+        order.action = direction
+        order.totalQuantity = qty
+        order.orderType = orderType
+        order.transmit = transmit
+        order.lmtPrice = lmtPrice
+        order.eTradeOnly = False
+        order.firmQuoteOnly = False
+        return order
+

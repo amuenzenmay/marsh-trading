@@ -31,18 +31,20 @@ class Contract:
         self.secType = kwargs.get('secType', 'Stk')
         self.timezone = kwargs.get('timezone', pytz.timezone('America/Chicago'))
         self.currency = kwargs.get('currency', 'USD')
+        self.conId = kwargs.get('conid', 0)
         self.shortAlgo = False
         self.short_algo_time = None
         self.pnl = 0.0
         self.data = None
         self.ib_contract = None
+        self.trade_contract = None
+        self.data_contract = None
         self.data_id = None
         self.id = self.next_con_id
         self.currVol = 0
         self.nextVol = 0
         self.edays = -1
         self.ib_ticker = []
-        self.ib_contract = []
         self.tradingBrokerage = ''
 
     @property
@@ -166,7 +168,10 @@ class FutureContract(Contract):
             return
         elif self.currVol < self.nextVol:
             print('{} rolled to {}'.format(self.ticker, self.next_tick))
-            self.ib_contract = self.next_ib_contract
+            # self.ib_contract = self.next_ib_contract
+            self.data_contract = self.next_ib_contract
+            self.trade_contract = self.next_ib_contract
+
             self.ticker = self.next_tick
 
     def getTradeAmount(self, side='', size_type=''):
@@ -197,4 +202,45 @@ class VixThirtyContract(FutureContract):
             return max(math.ceil((self.notional * self.current_weights[0]) / (self.multiplier * self.lastClose)), 1)
         elif side.lower() == 'sell':
             return max(math.ceil((self.notional * self.current_weights[1]) / (self.multiplier * self.lastClose)), 1)
+
+
+class CryptContract(FutureContract):
+    """This contract type holds two other contracts. One contract is the cash value of the cryptocurrencies and its
+    data is used for the trade decisions. The other contract is a future contract of the cryptocurrencies, and is the
+    contract that is traded depending on the previously mentioned decisions."""
+    def __init__(self, ticker, **kwargs):
+        super().__init__(ticker, **kwargs)
+        self.fut_contract = None # TODO create IB crypto future contract
+
+    def set_ticker(self, string):
+        self.ticker = string
+        self.localSymbol = string
+
+    def next_month(self):
+        """Returns the tick of the next available contract"""
+        year = int(self.ticker[-1])
+        curr_month_idx = self.months.index(self.month_map[self.ticker[-2]])
+        next_month_idx = (curr_month_idx + 1) % len(self.months)
+        if next_month_idx < curr_month_idx:
+            year += 1
+        # First two letters of contract code + the next available month in fut code terms + the year of the contract
+        # In __MY (GCU2)
+        new_tick = self.ticker[:-2] + self.month_map[self.months[next_month_idx]] + str(year)
+        return new_tick
+
+    def roll_contract(self):
+        if self.position != 0:
+            return
+        elif self.currVol < self.nextVol:
+            print('{} rolled to {}'.format(self.ticker, self.next_tick))
+            self.ib_contract = self.next_ib_contract
+            self.ticker = self.next_tick
+
+    def getTradeAmount(self, side='', size_type=''):
+        trueMultiplier = self.multiplier
+        if self.ticker[:-2] in ['FFI']:
+            trueMultiplier /= 100  # Adjust the FFI multiplier from 1000 on IB to true value of 10
+        value = int(self.notional // (trueMultiplier * self.lastClose))
+        return max(value, 1)
+
 

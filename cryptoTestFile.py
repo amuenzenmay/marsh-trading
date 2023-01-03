@@ -5,27 +5,29 @@ from threading import Thread
 
 import pandas as pd
 
-from contracts import Contract, VixThirtyContract
-from strategies import StockThirtyMin, VixThirtyMin
+import util
+from contracts import Contract, VixThirtyContract, CryptContract
+from strategies import StockThirtyMin, VixThirtyMin, Crypto
 from IBAPI import IBapi, Connection
 
 app = IBapi()
 locates = pd.DataFrame()
-Stocks = ['APA', 'TEAM', 'NFLX', 'PINS', 'DDOG', 'DASH', 'DOCU', 'LI', 'CCL', 'ZS', 'AFRM', 'PLUG',
-          'ETSY', 'AR', 'DKNG', 'SQ', 'SE', 'SHOP', 'SNAP', 'AAL', 'RIVN', 'ZM', 'TWLO', 'EQT', 'COIN',
-          'RBLX', 'TSLA', 'ENPH', 'ROKU', 'TGT', 'WBD', 'MDB', 'CRWD', 'SNOW', 'UBER', 'NIO', 'MELI', 'AA',
-          'UAL', 'PLTR']
-csv_file_path = r'C:\Users\Augie\Downloads\AT2W1209_Short_Locate_Result (1).csv'
+# Stocks = ['APA', 'TEAM', 'NFLX', 'PINS', 'DDOG', 'DASH', 'DOCU', 'LI', 'CCL', 'ZS', 'AFRM', 'PLUG',
+#           'ETSY', 'AR', 'DKNG', 'SQ', 'SE', 'SHOP', 'SNAP', 'AAL', 'RIVN', 'ZM', 'TWLO', 'EQT', 'COIN',
+#           'RBLX', 'TSLA', 'ENPH', 'ROKU', 'TGT', 'WBD', 'MDB', 'CRWD', 'SNOW', 'UBER', 'NIO', 'MELI', 'AA',
+#           'UAL', 'PLTR']
+# Stocks = ['AAPL']
+# Stocks = {'AAPL': 265598, 'MSFT': 272093, 'TEAM': 589316251}
+Stocks = {'APA': 474515500, 'TEAM': 589316251, 'NFLX': 15124833, 'PINS': 360975915, 'DDOG': 383858515,
+          'DASH': 459309417, 'DOCU': 316073742, 'LI': 436980133, 'CCL': 5516, 'ZS': 310621426, 'AFRM': 465119069,
+          'PLUG': 88385302, 'ETSY': 190480965, 'AR': 135942630, 'DKNG': 560105364, 'SQ': 212671971, 'SE': 292735472,
+          'SHOP': 195014116, 'SNAP': 268060148, 'AAL': 139673266, 'RIVN': 525768800, 'ZM': 361181057, 'TWLO': 237794430,
+          'EQT': 57698865, 'COIN': 481691285}
+#           'RBLX', 'TSLA', 'ENPH', 'ROKU', 'TGT', 'WBD', 'MDB', 'CRWD', 'SNOW', 'UBER', 'NIO', 'MELI', 'AA',
+#           'UAL', 'PLTR'}
 
 
-def get_locates():
-    global locates
-    locates = pd.read_csv(csv_file_path, usecols=['Symbol', ' Filled'])
-    locates.set_index('Symbol', inplace=True)
-    print(locates)
-
-
-def create_contracts():
+def create_contracts_stk():
     """
     Creates a future contract for the VIX
 
@@ -33,12 +35,10 @@ def create_contracts():
     """
     # Create stock contracts
     contracts = []
-    for tick in Stocks:
+    for tick in Stocks.keys():
         inceptions = True
-        if tick in locates.index and locates.loc[tick][' Filled'] == 0:
-            inceptions = False
         contracts.append(
-            Contract(tick, exchange='SMART', allowInceptions=inceptions, last_trade=time(14, 58)))
+            Contract(tick, exchange='SMART', allowInceptions=inceptions, last_trade=time(14, 58), conid=Stocks[tick]))
 
     return contracts
 
@@ -47,7 +47,7 @@ def create_contracts_vix():
     """
     Creates a future contract for the VIX
 
-    :return: None
+    return: [Contract]
     """
     vix_contract = VixThirtyContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
                                      first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
@@ -55,6 +55,18 @@ def create_contracts_vix():
     vix_contract.current_weights = (0, 1.0)
 
     return [vix_contract]
+
+
+def create_contracts_crypto():
+    """
+    Creates a contract for the Cryptos
+    return: [Contract]
+    """
+    # TODO add starting and ending times for crypto contracts
+    eth_contract = CryptContract('MBT', multiplier=0.1, exchange='CME')
+    bit_contract = CryptContract('MET', multiplier=0.1, exchange='CME')
+
+    return [eth_contract, bit_contract]
 
 
 def set_contract_months(contracts):
@@ -66,15 +78,36 @@ def set_contract_months(contracts):
     for contract in contracts:
         contract.allowInceptions = True
         if contract.ticker == 'VX':
-            contract.set_ticker('VXQ2')
+            contract.set_ticker('VXF3')
+            contract.conId = 558276419
+        elif contract.ticker == 'MBT':
+            contract.set_ticker('MBTF3')
+            contract.conId = 576721268
+        elif contract.ticker == 'MET':
+            contract.set_ticker('METF3')
+            contract.conId = 576721278
+
+
+def get_long_ma(strategy):
+    for tick in strategy.contracts.keys():
+        con = strategy.contracts[tick]
+        strategy.get_long_ma(con)
 
 
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
     strategy.get_positions()
     strategy.update_strategy_notional()
-    print(datetime.now().strftime("%H:%M:%S"))
-    print(strategy.positions, end='\n\n')
+    # print(datetime.now().strftime("%H:%M:%S"))
+    # print(strategy.twsPositions, end='\n\n')
+
+    strategy.get_contract_pnl("TWS")
+    # print(strategy.pnl, end='\n\n')
+
+    strategy.combine_pnl_position()
+    local_time = datetime.now().strftime("%H:%M:%S") + '\n'
+    pos = str(strategy.positions)
+    print(local_time + pos, end='\n\n')
 
     if strategy.end_day():
         print("Strategy Done")
@@ -130,8 +163,8 @@ def strategy_scheduler(strategy):
 def contract_scheduler(strategy, contract):
     while datetime.now().replace(second=0, microsecond=0).time() < contract.firstTrade:
         t.sleep(1)
-    while datetime.now().minute % strategy.interval >= (strategy.interval - strategy.day_algo_time):
-        t.sleep(1)
+    # while datetime.now().minute % strategy.interval >= (strategy.interval - strategy.day_algo_time):
+    #     t.sleep(1)
     contract_iteration(strategy, contract)
 
 
@@ -175,33 +208,36 @@ if __name__ == '__main__':
         'VWAP_redi'
     """
 
-    # Set the SRSE username and Password:
-    username = 'rzm.drasmussen'
-    password = 'KfW983#'
-
-    c = Connection()  # For TWS connection
+    c = Connection(live=False)  # For TWS connection
     app = c.app
     # get_locates()
 
-    # STOCK STRATEGY at SRSE
-    stk_contracts = create_contracts()
-    stk_strategy = StockThirtyMin(app=app, account='RZMAVM5', notional=8854492, order_type='TWAP_redi', day_algo_time=25,
-                                  endTime=time(14, 58))
-    stk_strategy.srse_username = username
-    stk_strategy.srse_password = password
+    # STOCK STRATEGY at TWS
+    stk_contracts = create_contracts_stk()
+    stk_strategy = StockThirtyMin(app=app, account='DU6393014', notional=20, order_type='Market', day_algo_time=25,
+                                  endTime=time(14, 58), barType='MIDPOINT')  # Should be TWAP
+
     # Retrieves SDIV and locates for contracts, and set up contracts to receive data from IB
     stk_strategy.set_contracts(stk_contracts)
 
-    # VIX STRATEGY at REDI
+    # VIX STRATEGY at TWS
     vix_contracts = create_contracts_vix()
     set_contract_months(vix_contracts)
-    vix_strategy = VixThirtyMin(app=app, account='AVM6F', notional=1842501, order_type='Limit',
-                                dma_exchange='GSFF DMA', limit_time=180,
-                                algo_exchange='GSFF ALGOS', day_algo_time=1.5, endTime=time(15, 10))
+    vix_strategy = VixThirtyMin(app=app, account='DU6393014', notional=10, order_type='Market',
+                                limit_time=180, day_algo_time=1.5, endTime=time(15, 10), barType='MIDPOINT')  # should be limit
     # Set up the contract to be able to request data from IB
     vix_strategy.set_contracts(vix_contracts)
 
+    # CRYPTO STRATEGY at TWS
+    crypto_contracts = create_contracts_crypto()
+    set_contract_months(crypto_contracts)
+    crypto_strategy = Crypto(app=app, account='DU6393014', notional=10, order_type='Market', startTime=time(2, 0),
+                             endTime=time(15, 30), barType='MIDPOINT')
+    crypto_strategy.set_contracts(crypto_contracts)
+    get_long_ma(crypto_strategy)
+
+
     # Only the strategies in this list will be executed.
-    strategies = [stk_strategy, vix_strategy]
+    strategies = [stk_strategy, vix_strategy, crypto_strategy]
     start_threads(strategies)
     app.disconnect()

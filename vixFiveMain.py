@@ -159,7 +159,7 @@ if __name__ == '__main__':
         VALID ORDER TYPES:
             'Market'
             'Limit'
-            'TWAP'
+            'TWAP_redi'
             
         Algo times are in minutes
         Limit times are in seconds

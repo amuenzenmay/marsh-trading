@@ -25,6 +25,7 @@ class Order:
         # self.set_limit_time(contract, limit_time)
         self.client_data = self.random_client_data_key()
         self.expected = self.expected_pos()
+        self.app = kwargs.get('app', None)
         self.dma_destination = kwargs.get('dma_dest', '')
         self.algo_destination = kwargs.get('algo_dest', '')
         self.start_time = kwargs.get('start', None)  # Must be in "HHMMSS" format
@@ -92,7 +93,7 @@ class Order:
         values = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
         return ''.join(random.choice(values) for i in range(8))
 
-    def limit_order(self):
+    def limit_order_redi(self):
         """Limit order that runs for a specified number of seconds. At the end of that time period, the order will
         be canceled, position will be checked, and any remaining shares left unfilled will be acquired through a
         market order.
@@ -117,11 +118,11 @@ class Order:
         result = o.Submit(msg)
 
         if result:  # 'True' if order submission was successful; otherwise 'False'
-            self.monitor_order()
+            self.monitor_order_redi()
         else:
             print(msg)  # message from sumbit
 
-    def monitor_order(self):
+    def monitor_order_redi(self):
         """Waits the desired amount of time before canceling a limit order. Then checks current position to determine
         how many shares from the original order were left unfilled. If any portion of the order did not fill, submits
         a market order for the remaining shares.
@@ -140,11 +141,11 @@ class Order:
             if self.vix_short_limit:
                 self.contract.allowInceptions = False
             elif 'VX' in self.contract.ticker:
-                self.IS()
+                self.IS_redi()
             else:
-                self.switch_market_order()
+                self.switch_market_order_redi()
 
-    def switch_market_order(self):
+    def switch_market_order_redi(self):
         switch_message = self.contract.ticker + 'switch limit to market'
         print(switch_message)
         o = win32com.client.Dispatch("REDI.ORDER", pythoncom.CoInitialize())
@@ -165,7 +166,7 @@ class Order:
         if not result:  # 'True' if order submission was successful; otherwise 'False'
             print(msg)  # message from sumbit
 
-    def market_order(self):
+    def market_order_redi(self):
         # message = self.contract.ticker + 'SUBMITTING A MARKET ORDER'
         # print(message)
         o = win32com.client.Dispatch("REDI.ORDER", pythoncom.CoInitialize())
@@ -188,8 +189,8 @@ class Order:
                   '\n{}\t{}\t{}'.format(self.contract.ticker, self.dma_destination,
                                         self.account))  # message from sumbit
 
-    def TWAP(self):
-        price_type = 'TWAP ' + self.algo_destination.split()[0]
+    def TWAP_redi(self):
+        price_type = 'TWAP_redi ' + self.algo_destination.split()[0]
         curr_time = datetime.now()
         start_time = datetime.now().strftime("%H:%M:%S")
         end_time = datetime.now() + timedelta(minutes=self.algo_time)
@@ -216,7 +217,7 @@ class Order:
         if not result:  # 'True' if order submission was successful; otherwise 'False'
             print(msg)  # message from sumbit
 
-    def VWAP(self):
+    def VWAP_redi(self):
         start_time = datetime.now().strftime("%H:%M:%S")
         end_time = datetime.now() + timedelta(minutes=self.algo_time)
         end_time = end_time.strftime("%H:%M:%S")
@@ -225,7 +226,7 @@ class Order:
         o.Side = str(self.side)
         o.symbol = self.contract.ticker  # "SBUX"
         o.Exchange = self.algo_destination
-        o.PriceType = 'VWAP ' + self.algo_destination.split()[0]
+        o.PriceType = 'VWAP_redi ' + self.algo_destination.split()[0]
         o.TIF = 'Day'
         o.Account = self.account
         o.Ticket = 'Bypass'
@@ -239,7 +240,7 @@ class Order:
         if not result:  # 'True' if order submission was successful; otherwise 'False'
             print(msg)  # message from sumbit
 
-    def IS(self):
+    def IS_redi(self):
         start_time = datetime.now().strftime("%H:%M:%S")
         end_time = datetime.now() + timedelta(minutes=self.algo_time)
         end_time = end_time.strftime("%H:%M:%S")
@@ -248,7 +249,7 @@ class Order:
         o.Side = str(self.side)
         o.symbol = self.contract.ticker  # "SBUX"
         o.Exchange = self.algo_destination
-        o.PriceType = 'IS ' + self.algo_destination.split()[0]
+        o.PriceType = 'IS_redi ' + self.algo_destination.split()[0]
         o.TIF = 'Day'
         o.Account = self.account
         o.Ticket = 'Bypass'
@@ -262,7 +263,7 @@ class Order:
         if not result:  # 'True' if order submission was successful; otherwise 'False'
             print(msg)  # message from sumbit
 
-    def cancel(self):
+    def cancel_redi(self):
         util.raiseNotDefined()
 
     def modify(self):
@@ -298,7 +299,7 @@ class Order:
                      "twapslicecnt,orderduration,orderactivesize,parentorderhandling,parentbalancehandling," \
                      "takelimitclass,makelimitclass,orderlimitType,tradername,CHECKSUM) " \
                      "VALUES ('{account}','addreplace',{group_code},{risk_id},'DAY','EQT','NMS','none','{ticker}'," \
-                     "'{action}',{size1},'TWAP',20,{seconds},{size2},'activetaker','none','simple','simple'," \
+                     "'{action}',{size1},'TWAP_redi',20,{seconds},{size2},'activetaker','none','simple','simple'," \
                      "'market', '{trader_name}',13);"
         seconds = self.algo_time * 60  # Minutes to seconds
         group, risk = self.next_ids
@@ -310,3 +311,30 @@ class Order:
                                          risk_id=risk, ticker=self.contract.ticker,
                                          action=self.side.upper(),
                                          size1=self.size, size2=self.size, seconds=seconds))
+
+    def market_order_ib(self):
+        order = self.app.create_order(self.side, self.size, 'MKT')
+        self.app.nextorderId += 1
+        self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
+        # time.sleep(2)
+
+    def limit_order_ib(self):
+        order = self.app.create_order(self.side, self.size, 'LMT', lmtPrice=self.limit_price)
+        self.app.nextorderId += 1
+        self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
+
+    def twap_order_ib(self):
+        pass
+
+    def vwap_order_ib(self):
+        pass
+
+    def is_order_ib(self):
+        pass
+
+    def monitor_order_ib(self):
+        pass
+
+    def switch_to_market_ib(self):
+        pass
+

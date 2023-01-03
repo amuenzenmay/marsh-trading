@@ -135,7 +135,7 @@ if __name__ == '__main__':
     app = c.app
 
     stk_contracts = create_contracts()
-    stk_strategy = StockFiveMin(app=app, account='DEMO', notional=1000000, exchange='DEMO algo', order_type='TWAP',
+    stk_strategy = StockFiveMin(app=app, account='DEMO', notional=1000000, exchange='DEMO algo', order_type='TWAP_redi',
                                 limit_time=60)
     stk_strategy.set_contracts(stk_contracts)
     strategies = [stk_strategy]

@@ -17,7 +17,7 @@ class MyTestCase(unittest.TestCase):
         dec = ThirtyMin()
         dec.contract = con
 
-        long = dec.longSignal()
+        long = dec.long_signal()
         self.assertEqual(True, long, "Supposed to be long")
 
     def test_30min_long2(self):
@@ -27,7 +27,7 @@ class MyTestCase(unittest.TestCase):
         dec = ThirtyMin()
         dec.contract = con
 
-        long = dec.longSignal()
+        long = dec.long_signal()
         self.assertEqual(False, long, "Should not be long")
 
     def test_30min_short(self):
@@ -37,7 +37,7 @@ class MyTestCase(unittest.TestCase):
         dec = ThirtyMin()
         dec.contract = con
 
-        short = dec.shortSignal()
+        short = dec.short_signal()
         self.assertEqual(True, short, "Supposed to be short")
 
     def test_30min_short2(self):
@@ -47,7 +47,7 @@ class MyTestCase(unittest.TestCase):
         dec = ThirtyMin()
         dec.contract = con
 
-        short = dec.shortSignal()
+        short = dec.short_signal()
         self.assertEqual(False, short, "Should not be long")
 
     def test_30min_close_short(self):
@@ -58,11 +58,11 @@ class MyTestCase(unittest.TestCase):
         dec.contract = con
 
         con.position = -1
-        close = dec.closeShortSignal()
+        close = dec.close_short_signal()
         self.assertFalse(close, "Should not close")
 
         con.position = 0
-        close = dec.closeShortSignal()
+        close = dec.close_short_signal()
         self.assertFalse(close, "Should not close a nonexistent position")
 
     def test_30min_close_short2(self):
@@ -73,11 +73,11 @@ class MyTestCase(unittest.TestCase):
         dec.contract = con
 
         con.position = -1
-        close = dec.closeShortSignal()
+        close = dec.close_short_signal()
         self.assertTrue(close, "Should close")
 
         con.position = 0
-        close = dec.closeShortSignal()
+        close = dec.close_short_signal()
         self.assertFalse(close, "Should not close a nonexistent position")
 
     def test_next_trade_LAST(self):

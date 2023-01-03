@@ -5,15 +5,16 @@ import win32com.client
 from win32com.client import pythoncom, VARIANT
 from datetime import datetime, time, timedelta
 from time import gmtime, strftime
+import time as t
 
 from IBAPI import Connection
 from data import Data
 from order import Order
-from contracts import Contract, JapaneseContract, VixThirtyContract
+from contracts import Contract, VixThirtyContract, FutureContract, CryptContract
 
 ticker = 'AAPL'
 destination = "GSDE Algo"
-price_type = 'TWAP ' + destination.split(' ')[0]
+price_type = 'TWAP_redi ' + destination.split(' ')[0]
 
 
 def VWAP():
@@ -21,7 +22,7 @@ def VWAP():
     o.Side = 'Buy'
     o.symbol = 'AAPL'  # "SBUX"
     o.Exchange = 'DEMF algo'  # 'DEMF DMA'
-    o.PriceType = 'VWAP DEMF'
+    o.PriceType = 'VWAP_redi DEMF'
     o.Price = "22.30"
     o.TIF = 'Day'
     o.Account = 'DEMO'
@@ -41,7 +42,7 @@ def TWAPVix():
     o.Side = 'Sell'
     o.symbol = 'FFIU2'  # "SBUX"
     o.Exchange = 'GSFF ALGOS'  # 'GSFF ALGOS'  # 'DEMF DMA'
-    o.PriceType = "TWAP GSFF"  # 'TWAP GSFU'
+    o.PriceType = "TWAP_redi GSFF"  # 'TWAP_redi GSFU'
     # o.price = ''
     o.TIF = 'Day'
     o.Account = 'QATEST01'
@@ -67,7 +68,7 @@ def TWAPStock():
     o.Side = 'Buy'
     o.symbol = 'AAPL'  # "SBUX"
     o.Exchange = 'GSDE Algo'  # # 'GSFF ALGOS'  # 'DEMF DMA'
-    o.PriceType = 'TWAP GSDE'  # "TWAP GSCE"  # 'TWAP GSFF'
+    o.PriceType = 'TWAP_redi GSDE'  # "TWAP_redi GSCE"  # 'TWAP_redi GSFF'
     # o.price = ''
     o.TIF = 'Day'
     o.Account = 'QATEST01'
@@ -145,7 +146,7 @@ def japanese_market():
     o.symbol = "4268.T"
     o.Exchange = "DEMO algo"
     o.Quantity = "1"
-    o.PriceType = "TWAP"
+    o.PriceType = "TWAP_redi"
     # o.Price = "30.0"  # test for NBBO popup message
     o.TIF = "Day"
     o.Account = "QATEST02"
@@ -186,37 +187,33 @@ def data_from_redi():
         symbolVar.value) + " success=" + str(ret))
 
 
-def eikonData():
-    # con = JapaneseContract(['4268.T', '4270.T', '4412.T', '2438.T'], interval=60)
-    s = ['8698', '6532']
-    stocks = [tick + '.T' for tick in s]
-    con = JapaneseContract(stocks, interval=15)
-    d = Data(con)
-    dic = d.requestDataEikon(con.interval, data_timezone='Asia/Tokyo')
-    pd.set_option('display.max_rows', None)
-    # df.index = pd.to_datetime(df.index)
-    # print(con.data.tail(20))
-    for tick in stocks:
-        print(tick, '\n', dic[tick])
-        # print(con.data[tick]['CLOSE'])
+def marketIB():
+    c = Connection(live=False)
+    app = c.app
+    # con = Contract("MSFT")
+    # ibapi_contract = app.Stock_contract('MSFT')
+    # con = VixThirtyContract('VXF3', multiplier=1000, exchange='CFE')
+    # ibapi_contract = app.Future_contract('VIX', con.ticker, con.multiplier, exchange=con.exchange,
+    #                                      con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
+    con = CryptContract('MET', multiplier=0.1, exchange='CME')
+    ibapi_contract = app.Future_contract('MET', 'METF3', con.multiplier, exchange=con.exchange)
+    con.ib_contract = ibapi_contract
+
+    order1 = Order(1, "Buy", con, app=app)
+    order1.market_order_ib()
+    t.sleep(20)
+    app.disconnect()
+    exit("Success")
 
 
-def eikonStreaming():
-    con = JapaneseContract('4268.T', interval=60)
-    d = Data(con)
-    data = d.eikon_streaming('4268.T')
-    df = data.get_snapshot()
-    print(df)
-
-
-# japanese_market()
-# TWAPVix()
 # Limit()
 # TWAPStock()
 # con = Contract('AAPL')
 # o = Order(100, 'Buy', 'GSDE Algo', con, account='QATEST01', limit_time=20)
-# o.TWAP()
-data_from_redi()
+# o.TWAP_redi()
 # eikonData()
 # eikonStreaming()
 # example_order()
+
+if __name__ == '__main__':
+    marketIB()

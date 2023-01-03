@@ -33,8 +33,13 @@ class Strategy:
         self.srse_password = ''
         self.timezone = kwargs.get('timezone', pytz.timezone('America/Chicago'))
         self.converter = None
+        self.trade_location = kwargs.get('brokerage', 'TWS')
+        self.twsPositions = None
+        self.pnl = None
+        self.allow_adjustment = kwargs.get('adjust', False)
+        self.bar_type = kwargs.get('barType', 'TRADES')
 
-    def getContracts(self):
+    def get_contracts(self):
         """
         Returns a diction of keys and values. Keys are tickers, and the values are contract objects for the
         corresponding ticker.
@@ -69,30 +74,30 @@ class Strategy:
         except IndexError:
             return 0, 0, 0, 0
 
-    def longSignal(self, contract):
+    def long_signal(self, contract):
         util.raiseNotDefined()
 
-    def shortSignal(self, contract):
+    def short_signal(self, contract):
         util.raiseNotDefined()
 
-    def closeLongSignal(self, contract):
+    def close_long_signal(self, contract):
         util.raiseNotDefined()
 
-    def closeShortSignal(self, contract):
+    def close_short_signal(self, contract):
         util.raiseNotDefined()
 
     def adjustment(self, contract):
         if not contract.allowInceptions:
             return 0
         if contract.position < 0:
-            newPosition = -contract.getTradeAmount(side='Sell')
-            diff = newPosition - contract.position
+            new_position = -contract.getTradeAmount(side='Sell')
+            diff = new_position - contract.position
             if diff != 0:
                 return diff
             return 0
         elif contract.position > 0:
-            newPosition = contract.getTradeAmount(side='Buy')
-            diff = newPosition - contract.position
+            new_position = contract.getTradeAmount(side='Buy')
+            diff = new_position - contract.position
             if diff != 0:
                 return diff
             return 0
@@ -118,21 +123,21 @@ class Strategy:
         else:
             side = 'Sell'
         order = Order(trade_value, side, contract, day_algo_time=self.day_algo_time, last_algo_time=self.last_algo_time,
-                      strategy=self.name)
+                      strategy=self.name, app=self.app)
         order.account = self.account
         order.dma_destination = self.exchange
         order.algo_destination = self.algo_exchange
         if self.orderType.upper() == 'MARKET' or adjustment != 0:
-            order.market_order()
+            order.market_order_ib()
         elif self.orderType.upper() == 'LIMIT':
             order.limit_time = self.limit_time
-            order.limit_order()
+            order.limit_order_ib()
         elif self.orderType.upper() == 'TWAP':
-            order.TWAP()
+            order.twap_order_ib()
         elif self.orderType.upper() == 'VWAP':
-            order.VWAP()
+            order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
-            order.IS()
+            order.is_order_ib()
         else:
             print('Invalid Order Type')
 
@@ -140,29 +145,28 @@ class Strategy:
         """Check for any trade signals. Return the number of shares that need to be bought or sold based on the
         signals detected."""
         trade_value = 0
-        adjust = 0
         signals = []
         adjust = 0
         if 'VX' in contract.ticker or contract.ticker == 'ROKU':
             bars = self.get_bars_from_df(contract)
             sbars = [str(i) for i in bars]
-            barMsg = 'Oldest to most recent: ' + '\t'.join(sbars)
-            print(barMsg)
-        if self.longSignal(contract):
+            msg = 'Oldest to most recent: ' + '\t'.join(sbars)
+            print(msg)
+        if self.long_signal(contract):
             trade_value += contract.getTradeAmount(side='Buy', size_type='inception')
             signals.append('LONG')
-        if self.shortSignal(contract):
+        if self.short_signal(contract):
             trade_value -= contract.getTradeAmount(side='Sell', size_type='inception')
             signals.append('SHORT')
-        if self.closeShortSignal(contract):
+        if self.close_short_signal(contract):
             trade_value += abs(contract.position)
             signals.append('CLOSE SHORT')
-        if self.closeLongSignal(contract):
+        if self.close_long_signal(contract):
             trade_value -= abs(contract.position)
             signals.append('CLOSE LONG')
         if trade_value == 0:
             adjust = self.adjustment(contract)
-            if adjust != 0:
+            if adjust != 0 and self.allow_adjustment:
                 signals.append('ADJUST')
                 trade_value = adjust
 
@@ -189,45 +193,69 @@ class Strategy:
 
     def get_positions(self):
         """Request the positions from the REDI API. Code is based off the Refinitiv Developer Community"""
-        q = win32com.client.Dispatch("REDI.Query", pythoncom.CoInitialize())
+        if self.trade_location == "TWS":
+            app = self.app
+            app.reqPositions()
+            t.sleep(0.25)
+            self.twsPositions = app.positions
+        elif self.trade_location == "REDI":
+            q = win32com.client.Dispatch("REDI.Query", pythoncom.CoInitialize())
 
-        # Prepare a variable which can handle returned values from submit method of the order object.
-        row = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
-        cellVar = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
-        cellVal = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
-        retVar = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            # Prepare a variable which can handle returned values from submit method of the order object.
+            # row = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            cell_var = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            cell_val = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
+            ret_var = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 0)
 
-        # add watch on accounts
-        myaccounts = [self.account]
-        for account in myaccounts:
-            tmpVal = q.AddWatch("2", "", account, retVar)
+            # add watch on accounts
+            myaccounts = [self.account]
+            for account in myaccounts:
+                temp_val = q.AddWatch("2", "", account, ret_var)
 
-        # Prepare the query
-        vTable = "Position"
-        vWhere = "true"
-        tmpVal = q.Submit(vTable, vWhere, retVar)
+            # Prepare the query
+            vtable = "Position"
+            vwhere = "true"
+            temp_val = q.Submit(vtable, vwhere, ret_var)
 
-        interested_pos = self.contracts.keys()
-        for i in range(0, q.RowCount):  # Iterate through every row of the table
-            cellVar.value = "Symbol"
-            ret = q.GetCell(i, cellVar, cellVal, retVar)
-            ticker = cellVal.value
-            if ticker not in interested_pos:
-                continue
-            contract = self.contracts[ticker]
+            interested_pos = self.contracts.keys()
+            for i in range(0, q.RowCount):  # Iterate through every row of the table
+                cell_var.value = "Symbol"
+                ret = q.GetCell(i, cell_var, cell_val, ret_var)
+                ticker = cell_val.value
+                if ticker not in interested_pos:
+                    continue
+                contract = self.contracts[ticker]
 
-            cellVar.value = "Position"
-            ret = q.GetCell(i, cellVar, cellVal, retVar)
-            position = cellVal.value
-            contract.position = position
+                cell_var.value = "Position"
+                ret = q.GetCell(i, cell_var, cell_val, ret_var)
+                position = cell_val.value
+                contract.position = position
 
-            cellVar.value = "PandL"
-            ret = q.GetCell(i, cellVar, cellVal, retVar)
-            contract.pnl = cellVal.value
-            self.positions.loc[contract.ticker] = [contract.position, contract.pnl]
+                cell_var.value = "PandL"
+                ret = q.GetCell(i, cell_var, cell_val, ret_var)
+                contract.pnl = cell_val.value
+                self.positions.loc[contract.ticker] = [contract.position, contract.pnl]
+        elif self.trade_location == "SRSE":
+            connection = mysql.connector.connect(host='198.102.4.55', port=3307, database='sranalytics',
+                                                 user=self.srse_username, password=self.srse_password)
+            cursor = connection.cursor()
+            cursor.execute("SELECT ticker_tk, (stkopnpos+shBot-shSld) AS Position, "
+                           "(opnPnlMidMark+dayPnL+opnDivPnL) AS 'PnL' FROM srrisk.msgstockpositionrecord "
+                           "WHERE ticker_at='EQT' AND accnt='{Account}' "
+                           "AND recordType='Live'".format(Account=self.account))
+            record = cursor.fetchall()
+            for r in record:
+                if r[0] not in self.contracts.keys():
+                    continue
+                contract = self.contracts[r[0]]
+                contract.position = r[1]
+                contract.pnl = r[2]
+                self.positions.loc[r[0]] = [contract.position, contract.pnl]
+        else:
+            quit("Trade location not specified")
 
     def get_eikon_data(self):
-        ticks = self.contracts.keys()
+        # ticks = self.contracts.keys()
         util.raiseNotDefined()
 
     def update_strategy_notional(self):
@@ -237,8 +265,8 @@ class Strategy:
             temp_sum += self.positions.loc[tick]['PnL']
         self.notional = temp_sum
         self.update_contract_notionals()
-        msg = 'Starting Notional: {}\tAdjusted Notional: {}'.format(self.starting_notional, self.notional)
-        print(msg)
+        # msg = 'Starting Notional: {}\tAdjusted Notional: {}'.format(self.starting_notional, self.notional)
+        # print(msg)
 
     def update_contract_notionals(self, size=0):
         if size == 0:
@@ -254,12 +282,13 @@ class Strategy:
         if tries > 2:
             msg = contract.ticker + ' data unable to update. Possible connection issue.'
             print(msg)
+            contract.data = pd.DataFrame()  # empty data frame
             return
         if self.data_source == 'IBAPI':
             self.app.volume_request = False
             data = Data(contract, app=self.app)
-            data.requestDataIBAPI(contract.ib_contract, self.interval, contract)
-            data.request_position()  # update the contract's position and PnL
+            data.requestDataIBAPI(contract.data_contract, self.interval, contract)
+            data.request_position("TWS")  # update the contract's position and PnL
             self.update_contract_notionals()  # update the contracts notional value
 
             # wait for data to populate
@@ -321,13 +350,13 @@ class Strategy:
             t.sleep(0.25)
             delay_count += 1
 
-    def end_day(self, timezone=pytz.timezone('America/Chicago')):
+    def end_day(self, tzone=pytz.timezone('America/Chicago')):
         """Returns True if the strategy has reached the end of its day"""
         utc_date = datetime.now(tz=pytz.timezone('UTC')).date()
         comb_end_time = datetime.combine(utc_date, self.endTime)
         tz = self.timezone
         loc_end_time = tz.localize(comb_end_time)
-        if loc_end_time <= datetime.now(tz=timezone).replace(second=0, microsecond=0):
+        if loc_end_time <= datetime.now(tz=tzone).replace(second=0, microsecond=0):
             return True
         else:
             return False
@@ -336,8 +365,9 @@ class Strategy:
         if current_time is None:
             current_time = datetime.now(tz=self.timezone).replace(second=0, microsecond=0)
         last_full = datetime.now(tz=self.timezone).replace(hour=self.endTime.hour,
-                                           minute=self.endTime.minute - (self.endTime.minute % self.interval),
-                                           second=0, microsecond=0)
+                                                           minute=self.endTime.minute - (
+                                                                       self.endTime.minute % self.interval),
+                                                           second=0, microsecond=0)
         if current_time.time() >= last_full.time():
             if self.endTime.minute % self.interval == 0:
                 return self.interval - (current_time.minute % self.interval)
@@ -362,7 +392,7 @@ class Strategy:
             return
         if self.data_source == 'IBAPI':
             data = Data(contract, app=self.app)
-            data.requestVolumeIBAPI(contract.ib_contract, contract)
+            data.requestVolumeIBAPI(contract.trade_contract, contract)
 
             # wait for data to populate
             delay_count = 0
@@ -402,6 +432,32 @@ class Strategy:
             print("Volume data not set up for Eikon")
             pass
 
+    def get_overall_pnl(self, source):
+        if source == 'TWS':
+            data = Data(Contract(''), app=self.app, account=self.account)
+            data.request_pnl("TWS")
+            self.pnl = self.app.tws_pnl
+        pass
+
+    def get_contract_pnl(self, source):
+        if source == "TWS":
+            for tick in self.contracts.keys():
+                con = self.contracts[tick]
+                data = Data(con, app=self.app, account=self.account)
+                data.request_pnl_single("TWS")
+            t.sleep(0.25)
+            self.pnl = self.app.single_pnl
+
+    def combine_pnl_position(self):
+        for tick in self.contracts.keys():
+            pos = 0
+            pnl = 0.0
+            if tick in self.twsPositions.index:
+                pos = self.twsPositions.loc[tick, 'Position']
+            if tick in self.pnl.index:
+                pnl = self.pnl.loc[tick, 'Daily']
+            self.positions.loc[tick] = pos, pnl
+
 
 class ThirtyMin(Strategy):
     def __init__(self, **kwargs):
@@ -410,7 +466,7 @@ class ThirtyMin(Strategy):
         self.average = ''
         self.interval = 30
 
-    def longSignal(self, contract, working_bar=False):
+    def long_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -424,8 +480,6 @@ class ThirtyMin(Strategy):
         else:
             try:
                 if bars[3] > bars[2] > bars[1] > bars[0]:  # Four increasing in a row
-                    msg = '{} LONG at'.format(contract.ticker)
-                    # TODO LOG logger.info(msg)
                     return True
                 else:
                     return False
@@ -434,7 +488,7 @@ class ThirtyMin(Strategy):
                 print(contract.data)
                 return False
 
-    def shortSignal(self, contract, working_bar=False):
+    def short_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -448,8 +502,6 @@ class ThirtyMin(Strategy):
         else:
             try:
                 if bars[3] < bars[2] < bars[1] < bars[0]:
-                    msg = '{} SHORT'.format(contract.ticker)
-                    # TODO LOG logger.info(msg)
                     return True
                 else:
                     return False
@@ -457,7 +509,7 @@ class ThirtyMin(Strategy):
                 print(contract.data)
                 return False
 
-    def closeLongSignal(self, contract, working_bar=False):
+    def close_long_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -471,8 +523,6 @@ class ThirtyMin(Strategy):
         else:
             try:
                 if bars[3] < bars[2] and bars[3] < bars[0]:
-                    msg = '{} CLOSED LONG'.format(contract.ticker)
-                    # TODO LOG logger.info(msg)
                     return True
                 else:
                     return False
@@ -480,7 +530,7 @@ class ThirtyMin(Strategy):
                 print(contract.data)
                 return False
 
-    def closeShortSignal(self, contract, working_bar=False):
+    def close_short_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -494,8 +544,6 @@ class ThirtyMin(Strategy):
         else:
             try:
                 if bars[3] > bars[2] and bars[3] > bars[0]:
-                    msg = '{} CLOSED SHORT'.format(contract.ticker)
-                    # TODO LOG logger.info(msg)
                     return True
                 else:
                     return False
@@ -550,65 +598,47 @@ class StockThirtyMin(ThirtyMin):
             self.contracts[contract.ticker] = contract
         if self.data_source == 'IBAPI':
             self.create_ibapi_contracts()
-        tickers = str(tuple(self.contracts.keys()))
-        connection = mysql.connector.connect(host='198.102.4.55', port=3307, database='sranalytics',
-                                             user=self.srse_username, password=self.srse_password)
-
-        cursor = connection.cursor()
-        # Retrieve tickers with SDIV less than or equal to 0.15
-        cursor.execute(
-            "SELECT ticker_tk FROM `msglivesurfaceterm` WHERE ticker_tk IN {stocks} AND surfaceType='PrevDay'"
-            "AND sdiv_42d <= .15".format(stocks=tickers))
-        tradable = [c[0] for c in cursor.fetchall()]
-
-        # Retrieve all tickers with surfaceType PrevDay
-        cursor.execute(
-            "SELECT ticker_tk FROM `msglivesurfaceterm` WHERE ticker_tk IN {stocks} AND surfaceType='PrevDay'".format(
-                stocks=tickers))
-        all_stocks = cursor.fetchall()
-
-        # Retrieve locates for each ticker
-        cursor.execute("SELECT ticker_tk, locateQuan FROM srcontrol.msgavailablestocklocates WHERE locatePool = 'RZM' ")
-        locate_records = cursor.fetchall()
-        locates = {}
-        for num in locate_records:
-            locates[num[0]] = num[1]
-
-        # Retrieve EDAY values for each contract
-        cursor.execute("SELECT ticker_tk,edays FROM srrisk.msgsymbolriskdetail WHERE accnt='{accnt}' AND ticker_tk " \
-                       "IN {stocks}".format(accnt=self.account, stocks=tickers))
-        eday_record = cursor.fetchall()
-        edays = {}
-        for eday in eday_record:
-            edays[eday[0]] = eday[1]  # Dictionary with ticker as a key, and eday as the value
-
-        # Set allowInceptions to True or False depending on locates and SDIV value of each contract
-        for record in all_stocks:
-            con = self.contracts[record[0]]
-            if con.ticker in edays.keys():
-                con.edays = edays[con.ticker]
-            if record[0] not in tradable or record[0] not in locates.keys() or locates[record[0]] == 0:
-                con.allowInceptions = False
-            else:
-                con.allowInceptions = True
-
-    def get_positions(self):
-        """Get positions from the SRSE database and assign position and pnl values to their corresponding contracts."""
-        connection = mysql.connector.connect(host='198.102.4.55', port=3307, database='sranalytics',
-                                             user=self.srse_username, password=self.srse_password)
-        cursor = connection.cursor()
-        cursor.execute("SELECT ticker_tk, (stkopnpos+shBot-shSld) AS Position, "
-                       "(opnPnlMidMark+dayPnL+opnDivPnL) AS 'PnL' FROM srrisk.msgstockpositionrecord "
-                       "WHERE ticker_at='EQT' AND accnt='{Account}' "
-                       "AND recordType='Live'".format(Account=self.account))
-        record = cursor.fetchall()
-        for r in record:
-            if r[0] not in self.contracts.keys():
-                continue
-            contract = self.contracts[r[0]]
-            contract.position = r[1]
-            contract.pnl = r[2]
-            self.positions.loc[r[0]] = [contract.position, contract.pnl]
+        # tickers = str(tuple(self.contracts.keys()))
+        # connection = mysql.connector.connect(host='198.102.4.55', port=3307, database='sranalytics',
+        #                                      user=self.srse_username, password=self.srse_password)
+        #
+        # cursor = connection.cursor()
+        # # Retrieve tickers with SDIV less than or equal to 0.15
+        # cursor.execute(
+        #     "SELECT ticker_tk FROM `msglivesurfaceterm` WHERE ticker_tk IN {stocks} AND surfaceType='PrevDay'"
+        #     "AND sdiv_42d <= .15".format(stocks=tickers))
+        # tradable = [c[0] for c in cursor.fetchall()]
+        #
+        # # Retrieve all tickers with surfaceType PrevDay
+        # cursor.execute(
+        #     "SELECT ticker_tk FROM `msglivesurfaceterm` WHERE ticker_tk IN {stocks} AND surfaceType='PrevDay'".format(
+        #         stocks=tickers))
+        # all_stocks = cursor.fetchall()
+        #
+        # # Retrieve locates for each ticker
+        # cursor.execute("SELECT ticker_tk, locateQuan FROM srcontrol.msgavailablestocklocates WHERE locatePool = 'RZM' ")
+        # locate_records = cursor.fetchall()
+        # locates = {}
+        # for num in locate_records:
+        #     locates[num[0]] = num[1]
+        #
+        # # Retrieve EDAY values for each contract
+        # cursor.execute("SELECT ticker_tk,edays FROM srrisk.msgsymbolriskdetail WHERE accnt='{accnt}' AND ticker_tk " \
+        #                "IN {stocks}".format(accnt=self.account, stocks=tickers))
+        # eday_record = cursor.fetchall()
+        # edays = {}
+        # for eday in eday_record:
+        #     edays[eday[0]] = eday[1]  # Dictionary with ticker as a key, and eday as the value
+        #
+        # # Set allowInceptions to True or False depending on locates and SDIV value of each contract
+        # for record in all_stocks:
+        #     con = self.contracts[record[0]]
+        #     if con.ticker in edays.keys():
+        #         con.edays = edays[con.ticker]
+        #     if record[0] not in tradable or record[0] not in locates.keys() or locates[record[0]] == 0:
+        #         con.allowInceptions = False
+        #     else:
+        #         con.allowInceptions = True
 
     def adjustment(self, contract):
         """Contract value adjustment based for the Stock Thirty Minute Strategy."""
@@ -648,7 +678,9 @@ class StockThirtyMin(ThirtyMin):
         for tick in self.contracts.keys():
             con = self.contracts[tick]
             ibapi_contract = self.app.Stock_contract(tick, con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
-            con.ib_contract = ibapi_contract
+            # con.ib_contract = ibapi_contract
+            con.data_contract = ibapi_contract
+            con.trade_contract = ibapi_contract
 
     def create_order(self, contract, trade_value, adjustment):
         if trade_value > 0:
@@ -656,21 +688,21 @@ class StockThirtyMin(ThirtyMin):
         else:
             side = 'Sell'
         order = Order(trade_value, side, contract, day_algo_time=self.day_algo_time, last_algo_time=self.last_algo_time,
-                      strategy=self.name)
+                      strategy=self.name, app=self.app)
         order.account = self.account
         order.dma_destination = self.exchange
         order.algo_destination = self.algo_exchange
         if self.orderType.upper() == 'MARKET' or adjustment != 0:
-            order.srse_market()
+            order.market_order_ib()
         elif self.orderType.upper() == 'LIMIT':
             order.limit_time = self.limit_time
-            order.srse_limit()
+            order.limit_order_ib()
         elif self.orderType.upper() == 'TWAP':
-            order.srse_twap()
+            order.twap_order_ib()
         elif self.orderType.upper() == 'VWAP':
-            order.srse_vwap()
+            order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
-            order.srse_is()
+            order.is_order_ib()
         else:
             print('Invalid Order Type')
 
@@ -688,21 +720,21 @@ class VixThirtyMin(ThirtyMin):
         else:
             side = 'Sell'
         order = Order(trade_value, side, contract, day_algo_time=self.day_algo_time, last_algo_time=self.last_algo_time,
-                      strategy=self.name)
+                      strategy=self.name, app=self.app)
         order.account = self.account
         order.dma_destination = self.exchange
         order.algo_destination = self.algo_exchange
         if self.orderType.upper() == 'MARKET':
-            order.market_order()
+            order.market_order_ib()
         elif self.orderType.upper() == 'LIMIT':
             order.limit_time = self.limit_time
-            order.limit_order()
+            order.limit_order_ib()
         elif self.orderType.upper() == 'TWAP':
-            order.TWAP()
+            order.twap_order_ib()
         elif self.orderType.upper() == 'VWAP':
-            order.VWAP()
+            order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
-            order.IS()
+            order.is_order_ib()
         else:
             print('Invalid Order Type')
 
@@ -728,7 +760,9 @@ class VixThirtyMin(ThirtyMin):
             con = self.contracts[tick]
             ibapi_contract = self.app.Future_contract('VIX', con.ticker, con.multiplier, exchange=con.exchange,
                                                       con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
-            con.ib_contract = ibapi_contract
+            # con.ib_contract = ibapi_contract
+            con.trade_contract = ibapi_contract
+            con.data_contract = ibapi_contract
             # Must include matching data range for spot contract and future contract due to having the same ticker
             # key in the TWS app connection. Or create spot contract first.
             con.spot_ib_contract = self.app.Stock_contract('VIX', 'IND', 'CBOE', data_range=(con.firstBar, con.lastBar))
@@ -770,9 +804,11 @@ class StockFiveMin(Strategy):
         for tick in self.contracts.keys():
             con = self.contracts[tick]
             ibapi_contract = self.app.Stock_contract(tick, con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
-            con.ib_contract = ibapi_contract
+            # con.ib_contract = ibapi_contract
+            con.trade_contract = ibapi_contract
+            con.data_contract = ibapi_contract
 
-    def longSignal(self, contract, working_bar=False):
+    def long_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -795,7 +831,7 @@ class StockFiveMin(Strategy):
                 print(error)
                 return False
 
-    def shortSignal(self, contract, working_bar=False):
+    def short_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -818,7 +854,7 @@ class StockFiveMin(Strategy):
                 print(error)
                 return False
 
-    def closeLongSignal(self, contract, working_bar=False):
+    def close_long_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -860,7 +896,7 @@ class StockFiveMin(Strategy):
             t.sleep(0.25)
             i += 1
 
-    def closeShortSignal(self, contract, working_bar=False):
+    def close_short_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         i = 0
@@ -898,7 +934,7 @@ class VixFiveMin(Strategy):
         nearestNickel = round(nearestNickel, 2)
         contract.lastClose = nearestNickel
 
-    def longSignal(self, contract, working_bar=False):
+    def long_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         if contract.position > 0 or not contract.allowInceptions:
@@ -915,7 +951,7 @@ class VixFiveMin(Strategy):
                 print(error)
                 return False
 
-    def shortSignal(self, contract, working_bar=False):
+    def short_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         if contract.position < 0 or not contract.allowInceptions:
@@ -932,7 +968,7 @@ class VixFiveMin(Strategy):
                 print(error)
                 return False
 
-    def closeLongSignal(self, contract, working_bar=False):
+    def close_long_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         if contract.position <= 0:
@@ -950,7 +986,7 @@ class VixFiveMin(Strategy):
                 print(error)
                 return False
 
-    def closeShortSignal(self, contract, working_bar=False):
+    def close_short_signal(self, contract, working_bar=False):
         contract = contract
         bars = self.get_bars_from_df(contract)
         if contract.position >= 0:
@@ -992,28 +1028,163 @@ class VixFiveMin(Strategy):
             con = self.contracts[tick]
             ibapi_contract = self.app.Future_contract('VIX', con.ticker, con.multiplier, exchange=con.exchange,
                                                       con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
-            con.ib_contract = ibapi_contract
-            
+            # con.ib_contract = ibapi_contract
+            con.trade_contract = ibapi_contract
+            con.data_contract = ibapi_contract
+
     def create_order(self, contract, trade_value, adjustment):
         if trade_value > 0:
             side = 'Buy'
         else:
             side = 'Sell'
         order = Order(trade_value, side, contract, day_algo_time=self.day_algo_time, last_algo_time=self.last_algo_time,
-                      strategy=self.name)
+                      strategy=self.name, app=self.app)
         order.account = self.account
         order.dma_destination = self.exchange
         order.algo_destination = self.algo_exchange
         if self.orderType.upper() == 'MARKET':
-            order.market_order()
+            order.market_order_ib()
         elif self.orderType.upper() == 'LIMIT':
             order.limit_time = self.limit_time
-            order.limit_order()
+            order.limit_order_ib()
         elif self.orderType.upper() == 'TWAP':
-            order.TWAP()
+            order.twap_order_ib()
         elif self.orderType.upper() == 'VWAP':
-            order.VWAP()
+            order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
-            order.IS()
+            order.is_order_ib()
         else:
             print('Invalid Order Type')
+
+
+class Crypto(Strategy):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.numberBars = 4
+        self.average = '56MA'
+        self.interval = 30
+        self.startTime = time(2, 0)
+        self.endTime = time(15, 30)
+        self.longMa = None
+        self.name = 'Crypto'
+
+    # TODO implement contract creation
+    def create_ibapi_contracts(self):
+        for tick in self.contracts.keys():
+            con = self.contracts[tick]
+            con.trade_contract = self.app.Future_contract(tick[:-2], tick, con.multiplier, exchange=con.exchange)
+            if tick[:-2] == "MET":
+                con.data_contract = self.app.crypto_contract("ETH", con_id=con.data_id,
+                                                             data_range=(con.firstBar, con.lastBar))
+            elif tick[:-2] == "MBT":
+                con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
+                                                             data_range=(con.firstBar, con.lastBar))
+
+
+    def long_signal(self, contract):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        if contract.position > 0 or not contract.allowInceptions:
+            return False
+        else:
+            try:
+                # Four increasing in a row and current price greater than the long term moving average
+                if bars[3] > bars[2] > bars[1] > bars[0] and \
+                        contract.lastClose >= contract.longMa:
+                    msg = '{} LONG at'.format(contract.ticker)
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(error)
+                return False
+
+    def short_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        i = 0
+        while len(bars) != self.numberBars:
+            if i > 60:
+                print('Data not available')
+                return False
+            t.sleep(0.25)
+        if contract.position < 0 or not contract.allowInceptions:
+            return False
+        else:
+            try:
+                if bars[3] < bars[2] < bars[1] < bars[0] and contract.lastClose <= contract.longMa:
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(contract.data)
+                return False
+
+    def close_long_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        i = 0
+        while len(bars) != self.numberBars:
+            if i > 60:
+                print('Data not available')
+                return False
+            t.sleep(0.25)
+        if contract.position <= 0:
+            return False
+        else:
+            try:
+                if bars[3] < bars[2] and bars[3] < bars[0]:
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(contract.data)
+                return False
+
+    def close_short_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        i = 0
+        while len(bars) != self.numberBars:
+            if i > 60:
+                print('Data not available')
+                return False
+            t.sleep(0.25)
+        if contract.position >= 0:
+            return False
+        else:
+            try:
+                if bars[3] > bars[2] and bars[3] > bars[0]:
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(contract.data)
+                return False
+
+    def get_long_ma(self, contract, tries=0):
+        if tries > 2:
+            msg = contract.ticker + ' data unable to update. Possible connection issue.'
+            print(msg)
+            return
+        if self.data_source == 'IBAPI':
+            data = Data(contract, app=self.app)
+            data.requestLongDataIBAPI(contract.data_contract, 30, contract)
+
+            # wait for data to populate
+            delay_count = 0
+            t.sleep(0.5)
+            while contract.data_id not in self.app.barDF.keys():
+                delay_count += 1
+                if delay_count > 60:  # Wait for data for 15 seconds, otherwise move on
+                    msg = contract.ticker + " data not updating. Trying again."
+                    print(msg)
+                    self.get_long_ma(contract, tries + 1)
+                    return
+                t.sleep(0.25)
+
+            df = self.app.barDF[contract.data_id]
+            df['MA'] = df['Close'].rolling(560).mean()
+
+            contract.longMa = df['MA'].iloc[-2]
+            t.sleep(0.25)
