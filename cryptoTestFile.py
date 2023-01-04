@@ -11,20 +11,21 @@ from strategies import StockThirtyMin, VixThirtyMin, Crypto
 from IBAPI import IBapi, Connection
 
 app = IBapi()
-locates = pd.DataFrame()
-# Stocks = ['APA', 'TEAM', 'NFLX', 'PINS', 'DDOG', 'DASH', 'DOCU', 'LI', 'CCL', 'ZS', 'AFRM', 'PLUG',
-#           'ETSY', 'AR', 'DKNG', 'SQ', 'SE', 'SHOP', 'SNAP', 'AAL', 'RIVN', 'ZM', 'TWLO', 'EQT', 'COIN',
-#           'RBLX', 'TSLA', 'ENPH', 'ROKU', 'TGT', 'WBD', 'MDB', 'CRWD', 'SNOW', 'UBER', 'NIO', 'MELI', 'AA',
-#           'UAL', 'PLTR']
-# Stocks = ['AAPL']
-# Stocks = {'AAPL': 265598, 'MSFT': 272093, 'TEAM': 589316251}
-Stocks = {'APA': 474515500, 'TEAM': 589316251, 'NFLX': 15124833, 'PINS': 360975915, 'DDOG': 383858515,
-          'DASH': 459309417, 'DOCU': 316073742, 'LI': 436980133, 'CCL': 5516, 'ZS': 310621426, 'AFRM': 465119069,
-          'PLUG': 88385302, 'ETSY': 190480965, 'AR': 135942630, 'DKNG': 560105364, 'SQ': 212671971, 'SE': 292735472,
-          'SHOP': 195014116, 'SNAP': 268060148, 'AAL': 139673266, 'RIVN': 525768800, 'ZM': 361181057, 'TWLO': 237794430,
-          'EQT': 57698865, 'COIN': 481691285}
-#           'RBLX', 'TSLA', 'ENPH', 'ROKU', 'TGT', 'WBD', 'MDB', 'CRWD', 'SNOW', 'UBER', 'NIO', 'MELI', 'AA',
-#           'UAL', 'PLTR'}
+# Stocks = {'APA': 474515500, 'TEAM': 589316251, 'NFLX': 15124833, 'PINS': 360975915, 'DDOG': 383858515,
+#           'DASH': 459309417, 'DOCU': 316073742, 'LI': 436980133, 'CCL': 5516, 'ZS': 310621426, 'AFRM': 465119069,
+#           'PLUG': 88385302, 'ETSY': 190480965, 'AR': 135942630, 'DKNG': 560105364, 'SQ': 212671971, 'SE': 292735472,
+#           'SHOP': 195014116, 'SNAP': 268060148, 'AAL': 139673266, 'RIVN': 525768800, 'ZM': 361181057,
+#           'TWLO': 237794430, 'EQT': 57698865, 'COIN': 481691285, 'RBLX': 476026060, 'TSLA': 76792991,
+#           'ENPH': 105368327, 'ROKU': 290651477, 'TGT': 6437, 'WBD': 554208351, 'MDB': 292833239, 'CRWD': 370757467,
+#           'SNOW': 444884769, 'UBER': 365207014, 'NIO': 332794741, 'MELI': 45602025, 'AA': 251962528, 'UAL': 79498203,
+#           'PLTR': 444857009}
+
+Stocks = {'COIN': 481691285, 'AFRM': 465119069, 'DOCU': 316073742, 'MDB': 292833239, 'RBLX': 476026060,
+          'RIVN': 525768800, 'DKNG': 560105364, 'ROKU': 290651477, 'SNAP': 268060148, 'SHOP': 195014116,
+          'TSLA': 76792991, 'SNOW': 444884769, 'CCL': 5516, 'DASH': 459309417, 'SQ': 212671971, 'TEAM': 589316251,
+          'TWLO': 237794430, 'DDOG': 383858515, 'ZS': 310621426, 'SI': 390341192, 'GME': 36285627, 'MSTR': 272110,
+          'W': 168812158, 'U': 445423543, 'NET': 382633646, 'CELH': 71364351, 'PARA': 393897513, 'OKTA': 272356196,
+          'SE': 292735472, 'TTD': 248755440}
 
 
 def create_contracts_stk():
@@ -97,20 +98,16 @@ def get_long_ma(strategy):
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
     strategy.get_positions()
-    strategy.update_strategy_notional()
-    # print(datetime.now().strftime("%H:%M:%S"))
-    # print(strategy.twsPositions, end='\n\n')
-
     strategy.get_contract_pnl("TWS")
-    # print(strategy.pnl, end='\n\n')
-
     strategy.combine_pnl_position()
+    strategy.update_strategy_notional()
+
     local_time = datetime.now().strftime("%H:%M:%S") + '\n'
     pos = str(strategy.positions)
     print(local_time + pos, end='\n\n')
 
     if strategy.end_day():
-        print("Strategy Done")
+        print(strategy.name, " Done")
         return
 
     wait = (strategy.wait_time() * 60) - datetime.now().second
@@ -121,7 +118,7 @@ def strategy_iteration(strategy):
 def contract_iteration(strategy, contract):
     """Runs the iterations of tasks that pertain to individual contracts"""
     if contract.terminate():
-        print('All Done ', contract.ticker)
+        # print('All Done ', contract.ticker)
         return
     t.sleep(10)
 
@@ -135,12 +132,13 @@ def contract_iteration(strategy, contract):
         strategy.get_spot_data(contract)
         print("Spot: {}\tContract: {}".format(contract.spotClose, contract.lastClose))
 
-    if contract.data is not None and (contract.ticker == 'ROKU' or 'VX' in contract.ticker):
+    if contract.data is not None and (contract.ticker == 'ROKU' or 'VX' in contract.ticker or 'MET' in contract.ticker
+                                      or 'MBT' in contract.ticker):
         ticker_time = contract.ticker + ': ' + str(contract.position) + '\t' + datetime.now().strftime("%H:%M:%S")
-        print(ticker_time)
+        # print(ticker_time)
         try:
             # Avoid "Gaps in blk ref_locs". If it does happen in the print, re-request data and move on
-            print(contract.data[-10:], end='\n\n')
+            print(ticker_time, "\n", contract.data[-10:], end='\n\n')
         except AssertionError:
             strategy.get_bar_data(contract)
 
@@ -163,8 +161,8 @@ def strategy_scheduler(strategy):
 def contract_scheduler(strategy, contract):
     while datetime.now().replace(second=0, microsecond=0).time() < contract.firstTrade:
         t.sleep(1)
-    # while datetime.now().minute % strategy.interval >= (strategy.interval - strategy.day_algo_time):
-    #     t.sleep(1)
+    while datetime.now().minute % strategy.interval >= (strategy.interval - strategy.day_algo_time):
+        t.sleep(1)
     contract_iteration(strategy, contract)
 
 
@@ -210,21 +208,19 @@ if __name__ == '__main__':
 
     c = Connection(live=False)  # For TWS connection
     app = c.app
-    # get_locates()
 
     # STOCK STRATEGY at TWS
     stk_contracts = create_contracts_stk()
-    stk_strategy = StockThirtyMin(app=app, account='DU6393014', notional=20, order_type='Market', day_algo_time=25,
-                                  endTime=time(14, 58), barType='MIDPOINT')  # Should be TWAP
-
-    # Retrieves SDIV and locates for contracts, and set up contracts to receive data from IB
+    stk_strategy = StockThirtyMin(app=app, account='DU6393014', notional=20, order_type='Arrival', day_algo_time=25,
+                                  endTime=time(14, 58), barType='TRADES')  # Should be TWAP
     stk_strategy.set_contracts(stk_contracts)
 
     # VIX STRATEGY at TWS
     vix_contracts = create_contracts_vix()
     set_contract_months(vix_contracts)
-    vix_strategy = VixThirtyMin(app=app, account='DU6393014', notional=10, order_type='Market',
-                                limit_time=180, day_algo_time=1.5, endTime=time(15, 10), barType='MIDPOINT')  # should be limit
+    vix_strategy = VixThirtyMin(app=app, account='DU6393014', notional=10, order_type='Limit',
+                                limit_time=180, day_algo_time=1.5, endTime=time(15, 10),
+                                barType='TRADES')  # should be limit
     # Set up the contract to be able to request data from IB
     vix_strategy.set_contracts(vix_contracts)
 
@@ -232,12 +228,20 @@ if __name__ == '__main__':
     crypto_contracts = create_contracts_crypto()
     set_contract_months(crypto_contracts)
     crypto_strategy = Crypto(app=app, account='DU6393014', notional=10, order_type='Market', startTime=time(2, 0),
-                             endTime=time(15, 30), barType='MIDPOINT')
+                             endTime=time(15, 30), day_algo_time=20, barType='MIDPOINT')
     crypto_strategy.set_contracts(crypto_contracts)
     get_long_ma(crypto_strategy)
 
-
     # Only the strategies in this list will be executed.
     strategies = [stk_strategy, vix_strategy, crypto_strategy]
+
     start_threads(strategies)
+
+    print("\n\nPnL by Strategy:")
+    for strategy in strategies:
+        strategy.get_positions()
+        strategy.get_contract_pnl("TWS")
+        strategy.combine_pnl_position()
+        strategy.update_strategy_notional()
+        print(strategy.name, ":\t", strategy.notional)
     app.disconnect()

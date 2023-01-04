@@ -14,7 +14,7 @@ from win32com.client import pythoncom, VARIANT
 # ek.set_app_key('71f602a117a3487e82c765770a9e310c78cdc613')
 # ek.set_log_level(logging.DEBUG)
 
-requestId = 0
+requestId = 250
 
 
 def next_request_id():

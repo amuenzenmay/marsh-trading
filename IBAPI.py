@@ -12,6 +12,7 @@ import pytz
 from ibapi.client import EClient
 from ibapi.common import TickerId
 from ibapi.contract import Contract
+from ibapi.tag_value import TagValue
 import threading
 
 from ibapi.order import Order
@@ -201,4 +202,21 @@ class IBapi(EWrapper, EClient):
         order.eTradeOnly = False
         order.firmQuoteOnly = False
         return order
+
+    def fill_arrival_params(self, baseOrder, end):
+        baseOrder.algoStrategy = "ArrivalPx"
+        baseOrder.algoParams = []
+        baseOrder.algoParams.append(TagValue("maxPctVol", '0.01'))
+        baseOrder.algoParams.append(TagValue("riskAversion", "Neutral"))
+
+        baseOrder.algoParams.append(TagValue("endTime", end))
+        baseOrder.algoParams.append(TagValue("forceCompletion", '0'))
+        baseOrder.algoParams.append(TagValue("allowPastEndTime", '0'))
+
+    def fill_twap_params(self, baseOrder, end):
+        baseOrder.algoStrategy = "Twap"
+        baseOrder.algoParams = []
+        baseOrder.algoParams.append(TagValue("strategyType", 'Midpoint'))
+        baseOrder.algoParams.append(TagValue("endTime", end))
+        baseOrder.algoParams.append(TagValue("allowPastEndTime", '0'))
 

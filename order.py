@@ -5,7 +5,7 @@ import win32com.client
 from data import *
 import random
 import time as t
-from datetime import time
+from datetime import datetime, time, timedelta
 
 username = 'rzm.drasmussen'
 password = 'KfW983#'
@@ -323,18 +323,32 @@ class Order:
         self.app.nextorderId += 1
         self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
 
+    def arrival_price_ib(self):
+        endtime = (datetime.now() + timedelta(minutes=self.algo_time)).replace(second=0, microsecond=0).strftime("%H:%M:%S") + " America/Chicago"
+        order = self.app.create_order(self.side, self.size, 'LMT', lmtPrice=self.limit_price)
+        self.app.fill_arrival_params(order, endtime)
+
+        self.app.nextorderId += 1
+        self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
+
     def twap_order_ib(self):
-        pass
+        endtime = (datetime.now() + timedelta(minutes=self.algo_time)).replace(second=0, microsecond=0).strftime(
+            "%H:%M:%S") + " US/Eastern"
+        order = self.app.create_order(self.side, self.size, 'LMT', lmtPrice=self.limit_price)
+        self.app.fill_arrival_params(order, endtime)
+
+        self.app.nextorderId += 1
+        self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
 
     def vwap_order_ib(self):
-        pass
+        util.raiseNotDefined()
 
     def is_order_ib(self):
-        pass
+        util.raiseNotDefined()
 
     def monitor_order_ib(self):
-        pass
+        util.raiseNotDefined()
 
     def switch_to_market_ib(self):
-        pass
+        util.raiseNotDefined()
 

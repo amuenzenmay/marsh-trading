@@ -206,6 +206,20 @@ def marketIB():
     exit("Success")
 
 
+def arrivalPriceIB():
+    c = Connection(live=False)
+    app = c.app
+    netflix = Contract("NFLX")
+    netflix.lastClose=307.30
+    ib_contract = app.Stock_contract('NFLX')
+    netflix.trade_contract = ib_contract
+
+    order = Order(1, "Sell", netflix, app=app)
+    order.arrival_price_ib()
+    t.sleep(10)
+    app.disconnect()
+    exit()
+
 # Limit()
 # TWAPStock()
 # con = Contract('AAPL')
@@ -216,4 +230,4 @@ def marketIB():
 # example_order()
 
 if __name__ == '__main__':
-    marketIB()
+    arrivalPriceIB()

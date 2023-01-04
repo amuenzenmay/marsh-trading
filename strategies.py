@@ -56,7 +56,6 @@ class Strategy:
                 i = 0
             else:
                 i = -1
-            tries = 0
             while len(df.index) < 5:
                 if tries >= 15:
                     print('Unable to get {} bars from dataframe'.format(contract.ticker))
@@ -138,6 +137,8 @@ class Strategy:
             order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
             order.is_order_ib()
+        elif self.orderType.upper() == 'ARRIVAL':
+            order.arrival_price_ib()
         else:
             print('Invalid Order Type')
 
@@ -703,6 +704,8 @@ class StockThirtyMin(ThirtyMin):
             order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
             order.is_order_ib()
+        elif self.orderType.upper() == 'ARRIVAL':
+            order.arrival_price_ib()
         else:
             print('Invalid Order Type')
 
@@ -735,6 +738,8 @@ class VixThirtyMin(ThirtyMin):
             order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
             order.is_order_ib()
+        elif self.orderType.upper() == 'ARRIVAL':
+            order.arrival_price_ib()
         else:
             print('Invalid Order Type')
 
@@ -1061,7 +1066,7 @@ class Crypto(Strategy):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.numberBars = 4
-        self.average = '56MA'
+        self.average = '56SMA'
         self.interval = 30
         self.startTime = time(2, 0)
         self.endTime = time(15, 30)
@@ -1073,12 +1078,16 @@ class Crypto(Strategy):
         for tick in self.contracts.keys():
             con = self.contracts[tick]
             con.trade_contract = self.app.Future_contract(tick[:-2], tick, con.multiplier, exchange=con.exchange)
-            if tick[:-2] == "MET":
-                con.data_contract = self.app.crypto_contract("ETH", con_id=con.data_id,
-                                                             data_range=(con.firstBar, con.lastBar))
-            elif tick[:-2] == "MBT":
-                con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
-                                                             data_range=(con.firstBar, con.lastBar))
+            con.data_contract = con.trade_contract
+
+            '''The API needs to support at least version 163 to handle the cash cryptocurrency contracts. Until that is
+            possible these will not work'''
+            # if tick[:-2] == "MET":
+            #     con.data_contract = self.app.crypto_contract("ETH", con_id=con.data_id,
+            #                                                  data_range=(con.firstBar, con.lastBar))
+            # elif tick[:-2] == "MBT":
+            #     con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
+            #                                                  data_range=(con.firstBar, con.lastBar))
 
 
     def long_signal(self, contract):
@@ -1162,6 +1171,21 @@ class Crypto(Strategy):
                 print(contract.data)
                 return False
 
+    def calculate_moving_averages(self, contract):
+        """Calculate the moving averages for a contract's data. Adds a column to the contract's DataFrame with a 10 SMA
+        of the close prices."""
+        contract.data['56SMA'] = self.app.barDF[contract.data_id]['Close'].rolling(10).mean()
+        delay_count = 0
+        while '56SMA' not in contract.data.columns or pd.isnull(contract.data['56SMA'].iloc[-1]):
+            if delay_count >= 60:
+                msg = contract.ticker + " data not calculating, attempting manual calculation"
+                print(msg)
+                self.manual_sma(contract, 10, 'Close', '56SMA')
+                break
+                # contract.data['10SMA'] = [0] * len(contract.data['Close'])
+            t.sleep(0.25)
+            delay_count += 1
+
     def get_long_ma(self, contract, tries=0):
         if tries > 2:
             msg = contract.ticker + ' data unable to update. Possible connection issue.'
@@ -1184,7 +1208,7 @@ class Crypto(Strategy):
                 t.sleep(0.25)
 
             df = self.app.barDF[contract.data_id]
-            df['MA'] = df['Close'].rolling(560).mean()
+            df['MA'] = df['Close'].rolling(312).mean()  # 560 for cash value
 
             contract.longMa = df['MA'].iloc[-2]
             t.sleep(0.25)
