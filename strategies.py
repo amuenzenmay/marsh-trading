@@ -167,7 +167,7 @@ class Strategy:
             signals.append('CLOSE LONG')
         if trade_value == 0:
             adjust = self.adjustment(contract)
-            if adjust != 0 and self.allow_adjustment:
+            if adjust != 0 and contract.allowAdjustment:
                 signals.append('ADJUST')
                 trade_value = adjust
 

@@ -207,10 +207,10 @@ class IBapi(EWrapper, EClient):
         baseOrder.algoStrategy = "ArrivalPx"
         baseOrder.algoParams = []
         baseOrder.algoParams.append(TagValue("maxPctVol", '0.01'))
-        baseOrder.algoParams.append(TagValue("riskAversion", "Neutral"))
+        baseOrder.algoParams.append(TagValue("riskAversion", "Aggressive"))
 
         baseOrder.algoParams.append(TagValue("endTime", end))
-        baseOrder.algoParams.append(TagValue("forceCompletion", '0'))
+        baseOrder.algoParams.append(TagValue("forceCompletion", '1'))
         baseOrder.algoParams.append(TagValue("allowPastEndTime", '0'))
 
     def fill_twap_params(self, baseOrder, end):

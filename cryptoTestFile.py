@@ -132,8 +132,7 @@ def contract_iteration(strategy, contract):
 
     strategy.get_bar_data(contract)
     if 'VX' in contract.ticker:
-        strategy.get_spot_data(contract)
-        print("Spot: {}\tContract: {}".format(contract.spotClose, contract.lastClose))
+        print("Contract: {}".format(contract.lastClose))
 
     if contract.data is not None and (contract.ticker == 'ROKU' or 'VX' in contract.ticker or 'MET' in contract.ticker
                                       or 'MBT' in contract.ticker):
@@ -150,6 +149,7 @@ def contract_iteration(strategy, contract):
     else:
         strategy.check_for_trade(contract)
 
+    contract.allowAdjustment = strategy.allow_adjustment
     wait = (contract.time_to_next_trade() * 60) - datetime.now().second
     t.sleep(wait)
     contract_iteration(strategy, contract)
@@ -208,13 +208,13 @@ if __name__ == '__main__':
         'IS_redi'
         'VWAP_redi'
     """
-
+    # TODO adjust at the beginning of the run
     c = Connection(live=False)  # For TWS connection
     app = c.app
 
     # STOCK STRATEGY at TWS
     stk_contracts = create_contracts_stk()
-    stk_strategy = StockThirtyMin(app=app, account='DU6393014', notional=20, order_type='Arrival', day_algo_time=25,
+    stk_strategy = StockThirtyMin(app=app, account='DU6393014', notional=10, order_type='Arrival', day_algo_time=25,
                                   endTime=time(14, 58), barType='TRADES')  # Should be TWAP
     stk_strategy.set_contracts(stk_contracts)
 

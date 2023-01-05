@@ -23,6 +23,7 @@ class Contract:
         self.interval = kwargs.get('interval', 0)
         self.working_bars = kwargs.get('working_bars', False)
         self.allowInceptions = kwargs.get('allowInceptions', True)
+        self.allowAdjustment = kwargs.get('allowAdjustment', True)
         self.firstTrade = kwargs.get('first_trade', time(hour=9, minute=0, second=0))  # The time of the first trade
         self.lastTrade = kwargs.get('last_trade', time(hour=14, minute=30, second=0))  # Time of the last trade
         self.firstBar = kwargs.get('first_bar', time(hour=8, minute=30, second=0))  # Last Bar included in data
@@ -198,20 +199,6 @@ class VixContract(FutureContract):
         self.current_weights = (0, 0)
         self.contango_weights = (0.0, 1.0)  # (long, short)
         self.backward_weights = (0.2, 0.8)  # (long, short)
-
-    def getTradeAmount(self, side='', size_type=''):
-        try:
-            if size_type == 'inception':
-                if self.spotClose < self.lastClose:
-                    self.current_weights = self.contango_weights
-                else:
-                    self.current_weights = self.backward_weights
-            if side.lower() == 'buy':
-                return max(math.ceil((self.notional * self.current_weights[0]) / (self.multiplier * self.lastClose)), 1)
-            elif side.lower() == 'sell':
-                return max(math.ceil((self.notional * self.current_weights[1]) / (self.multiplier * self.lastClose)), 1)
-        except ValueError:
-            print(self.ticker, " could not calculate trade amount")
 
 
 class CryptContract(FutureContract):
