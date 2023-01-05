@@ -1070,7 +1070,6 @@ class Crypto(Strategy):
         self.interval = 30
         self.startTime = time(2, 0)
         self.endTime = time(15, 30)
-        self.longMa = None
         self.name = 'Crypto'
 
     # TODO implement contract creation
@@ -1088,7 +1087,6 @@ class Crypto(Strategy):
             # elif tick[:-2] == "MBT":
             #     con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
             #                                                  data_range=(con.firstBar, con.lastBar))
-
 
     def long_signal(self, contract):
         contract = contract

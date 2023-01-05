@@ -99,8 +99,12 @@ class Contract:
 
         return int
         """
-        value = int(self.notional // self.lastClose)
-        return max(value, 1)
+        try:
+            value = int(self.notional // self.lastClose)
+            return max(value, 1)
+        except ValueError:
+            print(self.ticker, " could not calculate trade amount")
+            return 0
 
     def updateDataIBAPI(self):
         pass
@@ -175,11 +179,14 @@ class FutureContract(Contract):
             self.ticker = self.next_tick
 
     def getTradeAmount(self, side='', size_type=''):
-        trueMultiplier = self.multiplier
-        if self.ticker[:-2] in ['FFI']:
-            trueMultiplier /= 100  # Adjust the FFI multiplier from 1000 on IB to true value of 10
-        value = int(self.notional // (trueMultiplier * self.lastClose))
-        return max(value, 1)
+        try:
+            trueMultiplier = self.multiplier
+            if self.ticker[:-2] in ['FFI']:
+                trueMultiplier /= 100  # Adjust the FFI multiplier from 1000 on IB to true value of 10
+            value = int(self.notional // (trueMultiplier * self.lastClose))
+            return max(value, 1)
+        except ValueError:
+            print(self.ticker, " could not calculate trade amount")
 
 
 class VixThirtyContract(FutureContract):
@@ -193,15 +200,18 @@ class VixThirtyContract(FutureContract):
         self.backward_weights = (0.2, 0.8)  # (long, short)
 
     def getTradeAmount(self, side='', size_type=''):
-        if size_type == 'inception':
-            if self.spotClose < self.lastClose:
-                self.current_weights = self.contango_weights
-            else:
-                self.current_weights = self.backward_weights
-        if side.lower() == 'buy':
-            return max(math.ceil((self.notional * self.current_weights[0]) / (self.multiplier * self.lastClose)), 1)
-        elif side.lower() == 'sell':
-            return max(math.ceil((self.notional * self.current_weights[1]) / (self.multiplier * self.lastClose)), 1)
+        try:
+            if size_type == 'inception':
+                if self.spotClose < self.lastClose:
+                    self.current_weights = self.contango_weights
+                else:
+                    self.current_weights = self.backward_weights
+            if side.lower() == 'buy':
+                return max(math.ceil((self.notional * self.current_weights[0]) / (self.multiplier * self.lastClose)), 1)
+            elif side.lower() == 'sell':
+                return max(math.ceil((self.notional * self.current_weights[1]) / (self.multiplier * self.lastClose)), 1)
+        except ValueError:
+            print(self.ticker, " could not calculate trade amount")
 
 
 class CryptContract(FutureContract):
@@ -211,6 +221,7 @@ class CryptContract(FutureContract):
     def __init__(self, ticker, **kwargs):
         super().__init__(ticker, **kwargs)
         self.fut_contract = None # TODO create IB crypto future contract
+        self.longMa = None
 
     def set_ticker(self, string):
         self.ticker = string
@@ -237,10 +248,11 @@ class CryptContract(FutureContract):
             self.ticker = self.next_tick
 
     def getTradeAmount(self, side='', size_type=''):
-        trueMultiplier = self.multiplier
-        if self.ticker[:-2] in ['FFI']:
-            trueMultiplier /= 100  # Adjust the FFI multiplier from 1000 on IB to true value of 10
-        value = int(self.notional // (trueMultiplier * self.lastClose))
-        return max(value, 1)
+        try:
+            trueMultiplier = self.multiplier
+            value = int(self.notional // (trueMultiplier * self.lastClose))
+            return max(value, 1)
+        except ValueError:
+            print(self.ticker, " could not calculate trade amount")
 
 

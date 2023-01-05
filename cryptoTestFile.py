@@ -64,8 +64,10 @@ def create_contracts_crypto():
     return: [Contract]
     """
     # TODO add starting and ending times for crypto contracts
-    eth_contract = CryptContract('MBT', multiplier=0.1, exchange='CME')
-    bit_contract = CryptContract('MET', multiplier=0.1, exchange='CME')
+    eth_contract = CryptContract('MBT', multiplier=0.1, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
+                                 last_trade=time(15, 30), last_bar=time(15, 0))
+    bit_contract = CryptContract('MET', multiplier=0.1, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
+                                 last_trade=time(15, 30), last_bar=time(15, 0))
 
     return [eth_contract, bit_contract]
 
@@ -93,6 +95,7 @@ def get_long_ma(strategy):
     for tick in strategy.contracts.keys():
         con = strategy.contracts[tick]
         strategy.get_long_ma(con)
+        print(tick, " 312SMA: ", con.longMa)
 
 
 def strategy_iteration(strategy):
