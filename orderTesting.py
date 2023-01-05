@@ -10,7 +10,7 @@ import time as t
 from IBAPI import Connection
 from data import Data
 from order import Order
-from contracts import Contract, VixThirtyContract, FutureContract, CryptContract
+from contracts import Contract, VixContract, FutureContract, CryptContract
 
 ticker = 'AAPL'
 destination = "GSDE Algo"

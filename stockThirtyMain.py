@@ -5,7 +5,7 @@ from threading import Thread
 
 import pandas as pd
 
-from contracts import Contract, VixThirtyContract
+from contracts import Contract, VixContract
 from strategies import StockThirtyMin, VixThirtyMin
 from IBAPI import IBapi, Connection
 
@@ -49,9 +49,9 @@ def create_contracts_vix():
 
     :return: None
     """
-    vix_contract = VixThirtyContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
-                                     first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
-                                     multiplier=1000, exchange='CFE')
+    vix_contract = VixContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
+                               first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
+                               multiplier=1000, exchange='CFE')
     vix_contract.current_weights = (0, 1.0)
 
     return [vix_contract]

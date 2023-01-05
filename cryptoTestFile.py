@@ -6,8 +6,8 @@ from threading import Thread
 import pandas as pd
 
 import util
-from contracts import Contract, VixThirtyContract, CryptContract
-from strategies import StockThirtyMin, VixThirtyMin, Crypto
+from contracts import Contract, VixContract, CryptContract
+from strategies import StockThirtyMin, VixFiveMin, Crypto
 from IBAPI import IBapi, Connection
 
 app = IBapi()
@@ -50,9 +50,9 @@ def create_contracts_vix():
 
     return: [Contract]
     """
-    vix_contract = VixThirtyContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
-                                     first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
-                                     multiplier=1000, exchange='CFE')
+    vix_contract = VixContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
+                               first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
+                               multiplier=1000, exchange='CFE')
     vix_contract.current_weights = (0, 1.0)
 
     return [vix_contract]
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     # VIX STRATEGY at TWS
     vix_contracts = create_contracts_vix()
     set_contract_months(vix_contracts)
-    vix_strategy = VixThirtyMin(app=app, account='DU6393014', notional=10, order_type='Limit',
+    vix_strategy = VixFiveMin(app=app, account='DU6393014', notional=10, order_type='Limit',
                                 limit_time=180, day_algo_time=1.5, endTime=time(15, 10),
                                 barType='TRADES')  # should be limit
     # Set up the contract to be able to request data from IB

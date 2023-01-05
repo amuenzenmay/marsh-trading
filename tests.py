@@ -81,9 +81,9 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse(close, "Should not close a nonexistent position")
 
     def test_next_trade_LAST(self):
-        con = VixThirtyContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
-                                first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
-                                multiplier=1000, exchange='CFE', interval=30)
+        con = VixContract('VX', first_trade=time(9, 0), last_trade=time(hour=15, minute=10),
+                          first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
+                          multiplier=1000, exchange='CFE', interval=30)
         currTime = datetime.now().replace(hour=15, minute=0, second=0, microsecond=0)
         wait = con.time_to_next_trade(currTime)
         self.assertEqual(10, wait, 'Incorrect Value for wait')

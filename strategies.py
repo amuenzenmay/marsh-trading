@@ -1058,6 +1058,8 @@ class VixFiveMin(Strategy):
             order.vwap_order_ib()
         elif self.orderType.upper() == 'IS':
             order.is_order_ib()
+        elif self.orderType.upper() == 'ARRIVAL':
+            order.arrival_price_ib()
         else:
             print('Invalid Order Type')
 

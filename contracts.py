@@ -189,7 +189,7 @@ class FutureContract(Contract):
             print(self.ticker, " could not calculate trade amount")
 
 
-class VixThirtyContract(FutureContract):
+class VixContract(FutureContract):
     def __init__(self, ticker, **kwargs):
         super().__init__(ticker, **kwargs)
         self.spotClose = 0.0
