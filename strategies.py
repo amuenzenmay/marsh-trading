@@ -126,7 +126,7 @@ class Strategy:
         order.account = self.account
         order.dma_destination = self.exchange
         order.algo_destination = self.algo_exchange
-        if self.orderType.upper() == 'MARKET' or adjustment != 0:
+        if self.orderType.upper() == 'MARKET':
             order.market_order_ib()
         elif self.orderType.upper() == 'LIMIT':
             order.limit_time = self.limit_time
@@ -167,7 +167,7 @@ class Strategy:
             signals.append('CLOSE LONG')
         if trade_value == 0:
             adjust = self.adjustment(contract)
-            if adjust != 0 and contract.allowAdjustment:
+            if adjust != 0 and datetime.now().replace(second=0, microsecond=0).time() == time(9, 0):
                 signals.append('ADJUST')
                 trade_value = adjust
 
@@ -459,6 +459,13 @@ class Strategy:
                 pnl = self.pnl.loc[tick, 'Daily']
             self.positions.loc[tick] = pos, pnl
 
+    def shorten_positions(self):
+        for tick in self.contracts.keys():
+            pos = 0
+            if tick in self.twsPositions.index:
+                pos = self.twsPositions.loc[tick, 'Position']
+            self.positions.loc[tick] = pos, 0.0
+
 
 class ThirtyMin(Strategy):
     def __init__(self, **kwargs):
@@ -571,7 +578,7 @@ class StockThirtyMin(ThirtyMin):
             print(barMsg)
 
         adjust = self.adjustment(contract)
-        if trade_value == 0 and adjust != 0:
+        if trade_value == 0 and adjust != 0 and datetime.now().replace(second=0, microsecond=0).time() == time(9, 0):
             signals.append('ADJUST')
             trade_value = adjust
 
@@ -693,7 +700,7 @@ class StockThirtyMin(ThirtyMin):
         order.account = self.account
         order.dma_destination = self.exchange
         order.algo_destination = self.algo_exchange
-        if self.orderType.upper() == 'MARKET' or adjustment != 0:
+        if self.orderType.upper() == 'MARKET':
             order.market_order_ib()
         elif self.orderType.upper() == 'LIMIT':
             order.limit_time = self.limit_time
@@ -1078,7 +1085,7 @@ class Crypto(Strategy):
     def create_ibapi_contracts(self):
         for tick in self.contracts.keys():
             con = self.contracts[tick]
-            con.trade_contract = self.app.Future_contract(tick[:-2], tick, con.multiplier, exchange=con.exchange)
+            con.trade_contract = self.app.Future_contract(tick, con.localSymbol, con.multiplier, exchange=con.exchange)
             con.data_contract = con.trade_contract
 
             '''The API needs to support at least version 163 to handle the cash cryptocurrency contracts. Until that is

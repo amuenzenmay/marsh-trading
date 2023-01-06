@@ -10,7 +10,7 @@ from datetime import date, time
 
 import pytz
 from ibapi.client import EClient
-from ibapi.common import TickerId
+from ibapi.common import TickerId, OrderId
 from ibapi.contract import Contract
 from ibapi.tag_value import TagValue
 import threading
@@ -67,6 +67,7 @@ class IBapi(EWrapper, EClient):
         self.positions = pd.DataFrame([], columns=['Position', 'Average Cost'])
         self.tws_pnl = pd.DataFrame([], columns=['Daily', 'Realized', 'Unrealized'])
         self.single_pnl = pd.DataFrame([], columns=['Daily', 'Unrealized', 'Realized', 'Value'])
+        self.open_orders = {}
 
     def error(self, reqId: TickerId, errorCode: int, errorString: str):
         super().error(reqId, errorCode, errorString)
@@ -220,3 +221,8 @@ class IBapi(EWrapper, EClient):
         baseOrder.algoParams.append(TagValue("endTime", end))
         baseOrder.algoParams.append(TagValue("allowPastEndTime", '0'))
 
+    def orderStatus(self, orderId:OrderId , status:str, filled:float,
+                    remaining:float, avgFillPrice:float, permId:int,
+                    parentId:int, lastFillPrice:float, clientId:int,
+                    whyHeld:str, mktCapPrice: float):
+        self.open_orders[orderId] = remaining

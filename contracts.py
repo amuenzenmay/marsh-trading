@@ -211,7 +211,6 @@ class CryptContract(FutureContract):
         self.longMa = None
 
     def set_ticker(self, string):
-        self.ticker = string
         self.localSymbol = string
 
     def next_month(self):

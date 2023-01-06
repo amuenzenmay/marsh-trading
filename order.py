@@ -321,7 +321,9 @@ class Order:
     def limit_order_ib(self):
         order = self.app.create_order(self.side, self.size, 'LMT', lmtPrice=self.limit_price)
         self.app.nextorderId += 1
-        self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
+        order_id = self.app.nextorderId
+        self.app.placeOrder(order_id, self.contract.trade_contract, order)
+        # # self.monitor_order_ib()
 
     def arrival_price_ib(self):
         endtime = (datetime.now() + timedelta(minutes=self.algo_time)).replace(second=0, microsecond=0).strftime("%H:%M:%S") + " America/Chicago"
@@ -346,8 +348,16 @@ class Order:
     def is_order_ib(self):
         util.raiseNotDefined()
 
-    def monitor_order_ib(self):
-        util.raiseNotDefined()
+    def monitor_order_ib(self, order_id):
+        t.sleep(self.algo_time)
+        self.app.reqAllOpenOrders()
+        remaining = 0
+        if order_id in self.app.openOrders.keys():
+            remaining = self.app.openOrders[order_id]
+        if remaining != 0:
+            self.app.cancelOrder(order_id)
+            self.size = remaining
+            self.market_order_ib()
 
     def switch_to_market_ib(self):
         util.raiseNotDefined()
