@@ -1085,8 +1085,14 @@ class Crypto(Strategy):
     def create_ibapi_contracts(self):
         for tick in self.contracts.keys():
             con = self.contracts[tick]
-            con.trade_contract = self.app.Future_contract(tick, con.localSymbol, con.multiplier, exchange=con.exchange)
+            if 'ETH' in tick:
+                con.trade_contract = self.app.Future_contract('ETHUSDRR', con.localSymbol, con.multiplier,
+                                                              exchange=con.exchange)
+            else:
+                con.trade_contract = self.app.Future_contract(tick[:-2], con.localSymbol, con.multiplier,
+                                                              exchange=con.exchange)
             con.data_contract = con.trade_contract
+
 
             '''The API needs to support at least version 163 to handle the cash cryptocurrency contracts. Until that is
             possible these will not work'''

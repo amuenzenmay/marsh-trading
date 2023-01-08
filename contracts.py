@@ -210,8 +210,8 @@ class CryptContract(FutureContract):
         self.fut_contract = None # TODO create IB crypto future contract
         self.longMa = None
 
-    def set_ticker(self, string):
-        self.localSymbol = string
+    # def set_ticker(self, string):
+    #     self.localSymbol = string
 
     def next_month(self):
         """Returns the tick of the next available contract"""

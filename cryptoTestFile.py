@@ -51,7 +51,7 @@ def create_contracts_vix():
     return: [Contract]
     """
     vix_contract = VixContract('VX', first_trade=time(10, 30), last_trade=time(hour=15, minute=10),
-                               first_bar=time(8, 30), last_bar=time(hour=15, minute=0, second=0),
+                               first_bar=time(8, 30), last_bar=time(hour=15, minute=5, second=0),
                                multiplier=1000, exchange='CFE')
     vix_contract.current_weights = (0, 1.0)
 
@@ -64,7 +64,8 @@ def create_contracts_crypto():
     return: [Contract]
     """
     # TODO add starting and ending times for crypto contracts
-    eth_contract = CryptContract('ETHUSDRR', multiplier=50, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
+    eth_contract = CryptContract('ETH', multiplier=50, exchange='CME', first_trade=time(2, 0),
+                                 first_bar=time(2, 0),
                                  last_trade=time(15, 30), last_bar=time(15, 0))
     bit_contract = CryptContract('BRR', multiplier=5, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
                                  last_trade=time(15, 30), last_bar=time(15, 0))
@@ -89,7 +90,7 @@ def set_contract_months(contracts):
         elif contract.ticker == 'MET':
             contract.set_ticker('METF3')
             contract.conId = 576721278
-        elif contract.ticker == 'ETHUSDRR':
+        elif contract.ticker == 'ETH':
             contract.set_ticker('ETHF3')
             contract.conId = 576721275
         elif contract.ticker == 'BRR':
@@ -141,8 +142,9 @@ def contract_iteration(strategy, contract):
     if 'VX' in contract.ticker:
         print("Contract: {}".format(contract.lastClose))
 
-    if contract.data is not None and (contract.ticker == 'ROKU' or 'VX' in contract.ticker or 'MET' in contract.ticker
-                                      or 'MBT' in contract.ticker):
+    if contract.data is not None and (
+            contract.ticker == 'ROKU' or 'VX' in contract.ticker or 'ETH' in contract.ticker
+            or 'BRR' in contract.ticker):
         ticker_time = contract.ticker + ': ' + str(contract.position) + '\t' + datetime.now().strftime("%H:%M:%S")
         # print(ticker_time)
         try:
@@ -153,6 +155,8 @@ def contract_iteration(strategy, contract):
 
     if contract.last_trade() and strategy.name == 'Stk30':
         strategy.check_for_adjustment(contract)
+    elif contract.last_trade() and 'VX' in contract.ticker:
+        strategy.close_position(contract)
     else:
         strategy.check_for_trade(contract)
 
