@@ -1,3 +1,3 @@
 @echo off
-"C:\Program Files\Python310\python.exe" "C:\Users\Augie\PycharmProjects\marsh-trading\cryptoTestFile.py"
+"C:\Users\zm\AppData\Local\Programs\Python\Python310\python.exe" "C:\Users\zm\desktop\marsh-trading\cryptoTestFile.py"
 pause

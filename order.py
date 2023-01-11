@@ -343,7 +343,7 @@ class Order:
         self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)
 
     def adaptive_order_ib(self):
-        order = self.app.create_order(self.side, self.size, 'LMT', lmtPrice=self.limit_price)
+        order = self.app.create_order(self.side, self.size, 'MKT', lmtPrice=self.limit_price)
         self.app.fill_adaptive_params(order, "Normal")
         self.app.nextorderId += 1
         self.app.placeOrder(self.app.nextorderId, self.contract.trade_contract, order)

@@ -20,10 +20,10 @@ app = IBapi()
 #           'SNOW': 444884769, 'UBER': 365207014, 'NIO': 332794741, 'MELI': 45602025, 'AA': 251962528, 'UAL': 79498203,
 #           'PLTR': 444857009}
 
-Stocks = {'COIN': 481691285, 'AFRM': 465119069, 'DOCU': 316073742, 'MDB': 292833239, 'RBLX': 476026060,
+Stocks = {'CAR': 40673933, 'AFRM': 465119069, 'DOCU': 316073742, 'MDB': 292833239, 'RBLX': 476026060,
           'RIVN': 525768800, 'CROX': 37792836, 'ROKU': 290651477, 'SNAP': 268060148, 'SHOP': 195014116,
           'TSLA': 76792991, 'SNOW': 444884769, 'CCL': 5516, 'DASH': 459309417, 'SQ': 212671971, 'TEAM': 589316251,
-          'TWLO': 237794430, 'DDOG': 383858515, 'ZS': 310621426, 'SI': 390341192, 'GME': 36285627, 'MSTR': 272110,
+          'TWLO': 237794430, 'DDOG': 383858515, 'ZS': 310621426, 'KMX': 2586156, 'GME': 36285627, 'AA': 251962528,
           'W': 168812158, 'U': 445423543, 'NET': 382633646, 'CELH': 71364351, 'PARA': 393897513, 'OKTA': 272356196,
           'SE': 292735472, 'TTD': 248755440}
 
@@ -220,19 +220,19 @@ if __name__ == '__main__':
         'VWAP_redi'
     """
     # TODO adjust at the beginning of the run
-    c = Connection(live=False)  # For TWS connection
+    c = Connection(live=True)  # For TWS connection
     app = c.app
 
     # STOCK STRATEGY at TWS
     stk_contracts = create_contracts_stk()
-    stk_strategy = StockThirtyMin(app=app, account='DU6393014', notional=10, order_type='Adaptive', day_algo_time=25,
+    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=61000, order_type='Adaptive', day_algo_time=25,
                                   endTime=time(14, 58), barType='TRADES')  # Should be TWAP
     stk_strategy.set_contracts(stk_contracts)
 
     # VIX STRATEGY at TWS
     vix_contracts = create_contracts_vix()
     set_contract_months(vix_contracts)
-    vix_strategy = VixFiveMin(app=app, account='DU6393014', notional=10, order_type='Adaptive',
+    vix_strategy = VixFiveMin(app=app, account='U11095454', notional=20000, order_type='Adaptive',
                               limit_time=180, day_algo_time=1.5, startTime=time(10, 30), endTime=time(15, 10),
                               barType='TRADES')  # should be limit
     # Set up the contract to be able to request data from IB
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # CRYPTO STRATEGY at TWS
     crypto_contracts = create_contracts_crypto()
     set_contract_months(crypto_contracts)
-    crypto_strategy = Crypto(app=app, account='DU6393014', notional=10, order_type='Adaptive', startTime=time(2, 0),
+    crypto_strategy = Crypto(app=app, account='U11095454', notional=55000, order_type='Adaptive', startTime=time(2, 0),
                              endTime=time(15, 30), day_algo_time=20, barType='MIDPOINT')
     crypto_strategy.set_contracts(crypto_contracts)
     get_long_ma(crypto_strategy)
