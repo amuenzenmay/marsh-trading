@@ -139,6 +139,8 @@ class Strategy:
             order.is_order_ib()
         elif self.orderType.upper() == 'ARRIVAL':
             order.arrival_price_ib()
+        elif self.orderType.upper() == 'ADAPTIVE':
+            order.adaptive_order_ib()
         else:
             print('Invalid Order Type')
 
@@ -713,6 +715,8 @@ class StockThirtyMin(ThirtyMin):
             order.is_order_ib()
         elif self.orderType.upper() == 'ARRIVAL':
             order.arrival_price_ib()
+        elif self.orderType.upper() == 'ADAPTIVE':
+            order.adaptive_order_ib()
         else:
             print('Invalid Order Type')
 
@@ -747,6 +751,8 @@ class VixThirtyMin(ThirtyMin):
             order.is_order_ib()
         elif self.orderType.upper() == 'ARRIVAL':
             order.arrival_price_ib()
+        elif self.orderType.upper() == 'ADAPTIVE':
+            order.adaptive_order_ib()
         else:
             print('Invalid Order Type')
 
@@ -1067,6 +1073,8 @@ class VixFiveMin(Strategy):
             order.is_order_ib()
         elif self.orderType.upper() == 'ARRIVAL':
             order.arrival_price_ib()
+        elif self.orderType.upper() == 'ADAPTIVE':
+            order.adaptive_order_ib()
         else:
             print('Invalid Order Type')
 
