@@ -16,7 +16,7 @@ riskId = random.randint(0, 1000)
 class Order:
 
     def __init__(self, quantity, side, contract, account='DEMO', limit_time=60, **kwargs):
-        self.size = int(abs(quantity))
+        self.size = float(int(abs(quantity)))
         self.side = side
         self.contract = contract
         # self.destination = exchange  # 'DEMO DMA'

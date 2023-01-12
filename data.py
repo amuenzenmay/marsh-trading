@@ -109,14 +109,13 @@ class Data:
         self.app.reqHistoricalData(req_id, ib_contract, '', '4 D', str(interval) + ' mins', type, 0, 1,
                                    False, [])
 
-
-    def requestLongDataIBAPI(self, ib_contract, interval, contract):
+    def requestLongDataIBAPI(self, ib_contract, interval, contract, bar_type='AGGTRADES'):
         req_id = next_request_id()
         contract.data_id = req_id
         self.app.idMap[req_id] = ib_contract.symbol
         self.app.barData[req_id] = []
         self.app.timezones[req_id] = contract.timezone
-        self.app.reqHistoricalData(req_id, ib_contract, '', '1 M', str(interval) + ' mins', 'MIDPOINT', 0, 1,
+        self.app.reqHistoricalData(req_id, ib_contract, '', '1 M', str(interval) + ' mins', bar_type, 0, 1,
                                    False, [])
 
     def requestVolumeIBAPI(self, ib_contract, contract):

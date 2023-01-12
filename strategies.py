@@ -290,7 +290,7 @@ class Strategy:
         if self.data_source == 'IBAPI':
             self.app.volume_request = False
             data = Data(contract, app=self.app)
-            data.requestDataIBAPI(contract.data_contract, self.interval, contract)
+            data.requestDataIBAPI(contract.data_contract, self.interval, contract, self.bar_type)
             data.request_position("TWS")  # update the contract's position and PnL
             self.update_contract_notionals()  # update the contracts notional value
 
@@ -792,7 +792,7 @@ class VixThirtyMin(ThirtyMin):
             return
         if self.data_source == 'IBAPI':
             data = Data(contract, app=self.app)
-            data.requestDataIBAPI(contract.spot_ib_contract, self.interval, contract)
+            data.requestDataIBAPI(contract.spot_ib_contract, self.interval, contract, self.bar_type)
 
             # wait for data to populate
             delay_count = 0
@@ -1099,17 +1099,16 @@ class Crypto(Strategy):
             else:
                 con.trade_contract = self.app.Future_contract(tick[:-2], con.localSymbol, con.multiplier,
                                                               exchange=con.exchange)
-            con.data_contract = con.trade_contract
-
-
             '''The API needs to support at least version 163 to handle the cash cryptocurrency contracts. Until that is
             possible these will not work'''
-            # if tick[:-2] == "MET":
-            #     con.data_contract = self.app.crypto_contract("ETH", con_id=con.data_id,
-            #                                                  data_range=(con.firstBar, con.lastBar))
-            # elif tick[:-2] == "MBT":
-            #     con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
-            #                                                  data_range=(con.firstBar, con.lastBar))
+            if 'ETH' in tick:
+                con.data_contract = self.app.crypto_contract("ETH", con_id=con.data_id,
+                                                             data_range=(con.firstBar, con.lastBar))
+            elif "BRR" in tick:
+                con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
+                                                             data_range=(con.firstBar, con.lastBar))
+            else:
+                con.data_contract = con.trade_contract
 
     def long_signal(self, contract):
         contract = contract
@@ -1195,13 +1194,13 @@ class Crypto(Strategy):
     def calculate_moving_averages(self, contract):
         """Calculate the moving averages for a contract's data. Adds a column to the contract's DataFrame with a 10 SMA
         of the close prices."""
-        contract.data['56SMA'] = self.app.barDF[contract.data_id]['Close'].rolling(10).mean()
+        contract.data['56SMA'] = self.app.barDF[contract.data_id]['Close'].rolling(56).mean()
         delay_count = 0
         while '56SMA' not in contract.data.columns or pd.isnull(contract.data['56SMA'].iloc[-1]):
             if delay_count >= 60:
                 msg = contract.ticker + " data not calculating, attempting manual calculation"
                 print(msg)
-                self.manual_sma(contract, 10, 'Close', '56SMA')
+                self.manual_sma(contract, 56, 'Close', '56SMA')
                 break
                 # contract.data['10SMA'] = [0] * len(contract.data['Close'])
             t.sleep(0.25)
@@ -1214,7 +1213,7 @@ class Crypto(Strategy):
             return
         if self.data_source == 'IBAPI':
             data = Data(contract, app=self.app)
-            data.requestLongDataIBAPI(contract.data_contract, 30, contract)
+            data.requestLongDataIBAPI(contract.data_contract, 30, contract, bar_type=self.bar_type)
 
             # wait for data to populate
             delay_count = 0

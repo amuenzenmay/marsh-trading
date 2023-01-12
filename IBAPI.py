@@ -2,6 +2,7 @@ import sys
 import time as t
 
 import pandas as pd
+from datetime import datetime
 
 # sys.path.insert(0, r'C:\Augie Files\TWS API\TWS API\source\pythonclient')
 # Augie had me locate this folder path
@@ -69,16 +70,18 @@ class IBapi(EWrapper, EClient):
         self.single_pnl = pd.DataFrame([], columns=['Daily', 'Unrealized', 'Realized', 'Value'])
         self.open_orders = {}
 
-    def error(self, reqId: TickerId, errorCode: int, errorString: str):
+    def error(self, reqId: int, errorCode: int, errorString: str, advancedOrderRejectJson: str = ""):
         super().error(reqId, errorCode, errorString)
         if errorCode == 399:
-            self.cancelOrder(reqId)
+            self.cancelOrder(reqId, "")
         if errorCode == 102:
             pass
         if errorCode == 200:
             print('ERROR 200 for {}'.format(self.idMap[reqId]))
         if errorCode == 504:
             print('TWS CONNECTION LOST. RESTART ASAP')
+        if errorCode == 2176:
+            print('ERROR 2176 for {}'.format(self.idMap[reqId]))
 
     def nextValidId(self, orderId: int):
         super().nextValidId(orderId)
@@ -147,11 +150,12 @@ class IBapi(EWrapper, EClient):
     #     print("Date: ", bar.date, "\tClose: ", bar.close)
 
     def historicalData(self, reqId, bar):
-        barDate = pd.to_datetime(bar.date)
-        barDate = barDate.to_pydatetime().astimezone(tz=self.timezones[reqId])
+        # barDate = pd.to_datetime(bar.date)
+        barDate = datetime.strptime(" ".join(bar.date.split(" ")[:-1]), '%Y%m%d %H:%M:%S')
+        # barDate = barDate.to_pydatetime().astimezone(tz=self.timezones[reqId])
         # self.barData[reqId].append([bar.date, bar.close])
         if self.startEndBars(reqId) is None or self.volume_request:
-            self.barData[reqId].append([bar.date, bar.close, bar.volume])
+            self.barData[reqId].append([barDate, bar.close, bar.volume])
         else:
             times = self.startEndBars(reqId)
             startBar = times[0]
