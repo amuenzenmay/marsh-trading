@@ -160,8 +160,8 @@ class IBapi(EWrapper, EClient):
             times = self.startEndBars(reqId)
             startBar = times[0]
             endBar = times[1]  # End bar time is included in the dataframes
-            if barDate.date() == date(2021, 11, 25):
-                endBar = time(hour=12, minute=0)  # This bar time DOES get included
+            if barDate.date() == date(2023, 1, 16):
+                endBar = time(hour=15, minute=0)  # This bar time DOES get included
             if startBar <= barDate.time() <= endBar:
                 self.barData[reqId].append([barDate, bar.close, bar.volume])
 
@@ -185,7 +185,7 @@ class IBapi(EWrapper, EClient):
 
     def position(self, account, contract, pos, avgCost):
         index = str(contract.localSymbol)
-        self.positions.loc[index] = pos, avgCost
+        self.positions.loc[index] = float(pos), float(avgCost)
 
     def pnl(self, reqId: int, dailyPnL: float, unrealizedPnL: float, realizedPnL: float):
         self.tws_pnl.loc[reqId] = dailyPnL, realizedPnL, unrealizedPnL
