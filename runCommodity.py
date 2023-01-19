@@ -6,13 +6,15 @@ from threading import Thread
 import util
 from contracts import Contract, CommodityContract, CurrencyContract
 from strategies import CommodityStrategy, CurrencyStrategy
+from CurrencyConverter import CurrencyConverter
 from data import Data
 from IBAPI import IBapi, Connection
 
 app = IBapi()
 
-Currencies = {'USD.JPY': 15016059, 'USD.MXN': 35045199,
-              'EUR.USD': 12087792, 'EUR.JPY': 14321016}
+Currencies = {'USD.JPY': 229484467, 'USD.ZAR': 230949949, 'GBP.USD': 230949810, 'GBP.JPY': 229484470,
+              'GBP.ZAR': 230949991, 'EUR.USD': 143916318, 'EUR.JPY': 229484473, 'EUR.GBP': 143916322,
+              'EUR.ZAR': 230949992}
 
 
 def runLoop():
@@ -247,15 +249,6 @@ def contract_iteration(strategy, contract):
             print(ticker_time, "\n", contract.data[-10:], end='\n\n')
         except AssertionError:
             strategy.get_bar_data(contract)
-    # if contract.data is not None and '10WMA' in contract.data and contract.allowInceptions:
-    #     df = contract.data
-    #     i = -1
-    #     if contract.working_bars:
-    #         i = 0
-    #     msg = '{} Recent to Oldest: {}\t{}\t{}\t{}\n'.format(contract.ticker, df.iloc[i - 1]['10WMA'],
-    #                                                          df.iloc[i - 2]['10WMA'], df.iloc[i - 3]['10WMA'],
-    #                                                          df.iloc[i - 4]['10WMA'])
-    #     print(msg)
 
     strategy.check_for_trade(contract)
 
@@ -265,8 +258,8 @@ def contract_iteration(strategy, contract):
 
 
 def strategy_scheduler(strategy):
-    # while datetime.now().minute % strategy.interval != 0:
-    #     t.sleep(1)
+    while datetime.now().replace(second=0, microsecond=0).time() < strategy.startTime:
+        t.sleep(1)
     strategy_iteration(strategy)
 
 
@@ -278,6 +271,20 @@ def contract_scheduler(strategy, contract):
     contract_iteration(strategy, contract)
 
 
+def start_strategy(strategy):
+    while datetime.now().replace(second=0, microsecond=0).time() > strategy.endTime:
+        print(strategy.name)
+        t.sleep(20)
+    strategy_scheduler(strategy)
+
+
+def start_contract(contract):
+    while datetime.now().replace(second=0, microsecond=0).time() > contract.lastTrade:
+        print(contract.ticker)
+        t.sleep(30)
+    strategy_scheduler(contract)
+
+
 def start_threads(strategies):
     """Begin threads and have them run until all are complete
 
@@ -285,7 +292,7 @@ def start_threads(strategies):
     """
     threads = []
     for strategy in strategies:
-        threads.append(Thread(target=strategy_scheduler, args=(strategy,)))
+        threads.append(Thread(target=start_strategy, args=(strategy,)))
         threads[-1].name = strategy.name
         threads[-1].start()
         for con in strategy.contracts.keys():
@@ -313,6 +320,13 @@ if __name__ == '__main__':
     set_contract_months(com_contracts)
     curr_contracts = create_contracts_curr()
 
+    converter = CurrencyConverter()
+    # Rates are from USD to the respective currency
+    converter.rates = {'USD': 1,
+                       'EUR': 0.98,
+                       'GBP': 0.82,
+                       'JPY': 134.33}
+
     """Future ALGOS: 'GSFF ALGOS'
     Future DMA: GSFF DMA
     use parameter: limit_time={integer} for limit orders
@@ -320,13 +334,17 @@ if __name__ == '__main__':
     limit_time is in seconds
     day_algo_time and last_algo_time are in minutes"""
 
-    com_strategy = CommodityStrategy(app=app, account='U11095454', order_type='Market',
+    com_strategy = CommodityStrategy(app=app, account='U11095454', order_type='Adaptive',
                                      day_algo_time=25, endTime=time(15, 45))
     com_strategy.set_contracts(com_contracts, 10)
 
-    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=1, order_type='Market',
+    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=9, order_type='Arrival',
                                      day_algo_time=10, endTime=time(17, 0), barType='MIDPOINT')
     curr_strategy.set_contracts(curr_contracts)
+
+    for tick in curr_strategy.contracts:
+        con = curr_strategy.contracts[tick]
+        con.notional = converter.convert('USD', con.ticker[:3], con.notional)
 
     strategies = [com_strategy, curr_strategy]
     start_threads(strategies)

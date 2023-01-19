@@ -2,6 +2,7 @@ import pandas as pd
 
 from contracts import *
 from order import Order
+import CurrencyConverter
 from datetime import datetime, time
 import time as t
 import mysql.connector
@@ -292,7 +293,7 @@ class Strategy:
             data = Data(contract, app=self.app)
             data.requestDataIBAPI(contract.data_contract, self.interval, contract, self.bar_type)
             data.request_position("TWS")  # update the contract's position and PnL
-            self.update_contract_notionals()  # update the contracts notional value
+            # self.update_contract_notionals()  # update the contracts notional value
 
             # wait for data to populate
             delay_count = 0

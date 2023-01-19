@@ -221,7 +221,6 @@ class IBapi(EWrapper, EClient):
         order.firmQuoteOnly = False
         return order
 
-    @staticmethod
     def fill_arrival_params(self, baseOrder, end):
         baseOrder.algoStrategy = "ArrivalPx"
         baseOrder.algoParams = []
@@ -232,7 +231,6 @@ class IBapi(EWrapper, EClient):
         baseOrder.algoParams.append(TagValue("forceCompletion", '1'))
         baseOrder.algoParams.append(TagValue("allowPastEndTime", '0'))
 
-    @staticmethod
     def fill_twap_params(self, baseOrder, end):
         baseOrder.algoStrategy = "Twap"
         baseOrder.algoParams = []
