@@ -73,8 +73,8 @@ def set_contract_months(contracts):
     for contract in contracts:
         contract.allowInceptions = True
         if contract.ticker == 'VX':
-            contract.set_ticker('VXF3')
-            contract.conId = 558276419
+            contract.set_ticker('VXG3')
+            contract.conId = 563580774
         elif contract.ticker == 'MBT':
             contract.set_ticker('MBTF3')
             contract.conId = 576721268
@@ -216,7 +216,7 @@ if __name__ == '__main__':
 
     # STOCK STRATEGY at TWS
     stk_contracts = create_contracts_stk()
-    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=61000, order_type='Adaptive', day_algo_time=25,
+    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=167614, order_type='Adaptive', day_algo_time=25,
                                   endTime=time(14, 58), barType='TRADES')  # Should be TWAP
     stk_strategy.set_contracts(stk_contracts)
 
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     # CRYPTO STRATEGY at TWS
     crypto_contracts = create_contracts_crypto()
     set_contract_months(crypto_contracts)
-    crypto_strategy = Crypto(app=app, account='U11095454', notional=55000, order_type='Adaptive', startTime=time(2, 0),
+    crypto_strategy = Crypto(app=app, account='U11095454', notional=65000, order_type='Adaptive', startTime=time(2, 0),
                              endTime=time(15, 30), day_algo_time=20, barType='AGGTRADES')
     crypto_strategy.set_contracts(crypto_contracts)
     get_long_ma(crypto_strategy)

@@ -173,8 +173,8 @@ class IBapi(EWrapper, EClient):
             times = self.startEndBars(reqId)
             startBar = times[0]
             endBar = times[1]  # End bar time is included in the dataframes
-            if barDate.date() == date(2023, 1, 17):
-                endBar = time(hour=12, minute=0)  # This bar time DOES get included
+            if barDate.date() == date(2023, 1, 16):
+                endBar = time(hour=15, minute=0)  # This bar time DOES get included
             if startBar <= barDate.time() <= endBar:
                 self.barData[reqId].append([barDate, bar.close, bar.volume])
 
