@@ -10,7 +10,7 @@ import time as t
 from IBAPI import Connection
 from data import Data
 from order import Order
-from contracts import Contract, VixContract, FutureContract, CryptContract
+from contracts import Contract, VixContract, FutureContract, CryptoContract
 
 ticker = 'AAPL'
 destination = "GSDE Algo"
@@ -195,7 +195,7 @@ def marketIB():
     # con = VixThirtyContract('VXF3', multiplier=1000, exchange='CFE')
     # ibapi_contract = app.Future_contract('VIX', con.ticker, con.multiplier, exchange=con.exchange,
     #                                      con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
-    con = CryptContract('MET', multiplier=0.1, exchange='CME')
+    con = CryptoContract('MET', multiplier=0.1, exchange='CME')
     ibapi_contract = app.Future_contract('MET', 'METF3', con.multiplier, exchange=con.exchange)
     con.ib_contract = ibapi_contract
 

@@ -33,6 +33,7 @@ class Contract:
         self.timezone = kwargs.get('timezone', pytz.timezone('America/Chicago'))
         self.currency = kwargs.get('currency', 'USD')
         self.conId = kwargs.get('conid', 0)
+        self.hardTradeValue = kwargs.get('trade_amount', 0)
         self.shortAlgo = False
         self.short_algo_time = None
         self.pnl = 0.0
@@ -201,7 +202,7 @@ class VixContract(FutureContract):
         self.backward_weights = (0.2, 0.8)  # (long, short)
 
 
-class CryptContract(FutureContract):
+class CryptoContract(FutureContract):
     """This contract type holds two other contracts. One contract is the cash value of the cryptocurrencies and its
     data is used for the trade decisions. The other contract is a future contract of the cryptocurrencies, and is the
     contract that is traded depending on the previously mentioned decisions."""
@@ -241,4 +242,20 @@ class CryptContract(FutureContract):
         except ValueError:
             print(self.ticker, " could not calculate trade amount")
 
+
+class CommodityContract(FutureContract):
+    def __init__(self, ticker, **kwargs):
+        super().__init__(ticker, **kwargs)
+
+    def getTradeAmount(self, side='', size_type=''):
+        return self.hardTradeValue
+
+
+class CurrencyContract(Contract):
+    def __init__(self, ticker, **kwargs):
+        super().__init__(ticker, **kwargs)
+        self.firstBar = time(0, 0)
+        self.lastBar = time(23, 30)
+        self.firstTrade = time(2, 0)
+        self.lastTrade = time(17, 0)
 

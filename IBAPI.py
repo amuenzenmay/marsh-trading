@@ -117,7 +117,20 @@ class IBapi(EWrapper, EClient):
         return contract
 
     def crypto_contract(self, symbol, secType='CRYPTO', exchange='PAXOS', currency='USD', con_id=0,
-                       data_range=(None, None)):
+                        data_range=(None, None)):
+        contract = Contract()
+        contract.symbol = symbol
+        contract.secType = secType
+        contract.exchange = exchange
+        contract.currency = currency
+        contract.id = con_id
+        contract.data_range = data_range
+        self.dataTimes[symbol] = data_range
+
+        return contract
+
+    def currency_contract(self, symbol, currency, secType='CASH', exchange='IDEALPRO', con_id=0,
+                          data_range=(None, None)):
         contract = Contract()
         contract.symbol = symbol
         contract.secType = secType
@@ -160,7 +173,7 @@ class IBapi(EWrapper, EClient):
             times = self.startEndBars(reqId)
             startBar = times[0]
             endBar = times[1]  # End bar time is included in the dataframes
-            if barDate.date() == date(2021, 11, 25):
+            if barDate.date() == date(2023, 1, 17):
                 endBar = time(hour=12, minute=0)  # This bar time DOES get included
             if startBar <= barDate.time() <= endBar:
                 self.barData[reqId].append([barDate, bar.close, bar.volume])
@@ -185,7 +198,7 @@ class IBapi(EWrapper, EClient):
 
     def position(self, account, contract, pos, avgCost):
         index = str(contract.localSymbol)
-        self.positions.loc[index] = pos, avgCost
+        self.positions.loc[index] = float(pos), float(avgCost)
 
     def pnl(self, reqId: int, dailyPnL: float, unrealizedPnL: float, realizedPnL: float):
         self.tws_pnl.loc[reqId] = dailyPnL, realizedPnL, unrealizedPnL
@@ -233,8 +246,8 @@ class IBapi(EWrapper, EClient):
         baseOrder.algoParams = []
         baseOrder.algoParams.append(TagValue("adaptivePriority", priority))
 
-    def orderStatus(self, orderId:OrderId , status:str, filled:float,
-                    remaining:float, avgFillPrice:float, permId:int,
-                    parentId:int, lastFillPrice:float, clientId:int,
-                    whyHeld:str, mktCapPrice: float):
+    def orderStatus(self, orderId: OrderId, status: str, filled: float,
+                    remaining: float, avgFillPrice: float, permId: int,
+                    parentId: int, lastFillPrice: float, clientId: int,
+                    whyHeld: str, mktCapPrice: float):
         self.open_orders[orderId] = remaining

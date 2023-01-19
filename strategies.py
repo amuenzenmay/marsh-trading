@@ -1232,3 +1232,325 @@ class Crypto(Strategy):
 
             contract.longMa = df['MA'].iloc[-2]
             t.sleep(0.25)
+
+
+class CommodityStrategy(ThirtyMin):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.average = '10WMA'
+        self.notional = 1000000
+        self.closed_contracts = {}
+
+    def save_contract_months(self):
+        futures = util.read_json('CommodityContracts.json')
+        new_contracts = {}
+        for tick in self.contracts:
+            con = self.contracts[tick]
+            futures[con.ticker[:-2]] = con.ticker
+            new_contracts[con.ticker] = con
+        self.contracts = new_contracts
+        util.write_json(futures, 'CommodityContracts.json')
+
+    def set_contracts(self, arr, size=0):
+        if size == 0:
+            size = len(arr)
+        for contract in arr:
+            contract.notional = self.notional / size
+            contract.starting_notional = self.notional / size
+            contract.account = self.account
+            contract.interval = self.interval
+            self.contracts[contract.ticker] = contract
+        if self.data_source == 'IBAPI':
+            self.create_ibapi_contracts()
+
+        # for contract in arr:
+        #     self.get_volume(contract)
+
+    def get_volume(self, contract, tries=0):
+        if tries > 2:
+            msg = contract.ticker + ' data unable to update. Possible connection issue.'
+            print(msg)
+            return
+        if self.data_source == 'IBAPI':
+            data = Data(contract, app=self.app)
+            data.requestVolumeIBAPI(contract.ib_contract, contract)
+
+            # wait for data to populate
+            delay_count = 0
+            while contract.data_id not in self.app.barDF.keys():
+                delay_count += 1
+                if delay_count > 60:  # Wait for data for 15 seconds, otherwise move on
+                    msg = contract.ticker + " data not updating. Trying again."
+                    print(msg)
+                    self.get_volume(contract, tries + 1)
+                    return
+                t.sleep(0.1)
+
+            df = self.app.barDF[contract.data_id]
+            contract.currVol = df['Volume'].iloc[-2]
+
+            # NEXT Contract
+            data.requestVolumeIBAPI(contract.next_ib_contract, contract)
+
+            # wait for data to populate
+            delay_count = 0
+            while contract.data_id not in self.app.barDF.keys():
+                delay_count += 1
+                if delay_count > 60:  # Wait for data for 15 seconds, otherwise move on
+                    msg = contract.ticker + " data not updating. Trying again."
+                    print(msg)
+                    self.get_volume(contract, tries + 1)
+                    return
+                t.sleep(0.25)
+
+            df = self.app.barDF[contract.data_id]
+            contract.nextVol = df['Volume'].iloc[-2]
+            print('{}:\t {}\t{}: {}'.format(contract.ticker, contract.currVol, contract.next_tick, contract.nextVol))
+        elif self.data_source == 'Eikon':
+            print("Volume data not set up for Eikon")
+            pass
+
+    def update_strategy_notional(self):
+        """Update the contracts notional value based on the daily pnl"""
+        temp_sum = self.starting_notional
+        open_contracts = [tick for tick in self.positions.index if tick not in self.closed_contracts.keys()]
+        for tick in open_contracts:
+            temp_sum += self.positions.loc[tick]['PnL']
+        for tick in self.closed_contracts.keys():
+            temp_sum += self.closed_contracts[tick]
+            contract = self.contracts[tick]
+            self.positions.loc[tick] = [contract.position, self.closed_contracts[tick]]
+        self.notional = temp_sum
+        self.update_contract_notionals(14)
+        msg = 'Starting Notional: {}\tAdjusted Notional: {}'.format(self.starting_notional, self.notional)
+        print(msg)
+
+    def convert_pricing(self, contract):
+        if contract.ticker[:2] in ['ZS', 'ZW', 'ZC', 'ZL', 'HE', 'LE', 'GF']:
+            ibClose = contract.lastClose
+            rediPrice = ibClose / 100
+            contract.lastClose = rediPrice
+
+    def create_order(self, contract, trade_value, adjustment):
+        # TODO Customize orders for the commodity strategy
+        if trade_value > 0:
+            side = 'Buy'
+        else:
+            side = 'Sell'
+        order = Order(trade_value, side, contract, day_algo_time=self.day_algo_time, last_algo_time=self.last_algo_time,
+                      strategy=self.name, app=self.app)
+        order.account = self.account
+        order.dma_destination = self.exchange
+        order.algo_destination = self.algo_exchange
+        if self.orderType.upper() == 'MARKET':
+            order.market_order_ib()
+        elif self.orderType.upper() == 'LIMIT':
+            order.limit_time = self.limit_time
+            order.limit_order_ib()
+        elif self.orderType.upper() == 'TWAP':
+            order.twap_order_ib()
+        elif self.orderType.upper() == 'VWAP':
+            order.vwap_order_ib()
+        elif self.orderType.upper() == 'IS':
+            order.is_order_ib()
+        elif self.orderType.upper() == 'ARRIVAL':
+            order.arrival_price_ib()
+        elif self.orderType.upper() == 'ADAPTIVE':
+            order.adaptive_order_ib()
+        else:
+            print('Invalid Order Type')
+
+    def calculate_moving_averages(self, contract):
+        """Calculate the 10 weighted moving average of close prices
+        """
+        closePrices = contract.data['Close']
+        averages = [None] * 9
+        for i in range(9, len(closePrices)):  # Start at index 9 (10th index)
+            averages.append(
+                (10 * closePrices[i] + 9 * closePrices[i - 1] + 8 * closePrices[i - 2] + 7 * closePrices[i - 3]
+                 + 6 * closePrices[i - 4] + 5 * closePrices[i - 5] + 4 * closePrices[i - 6] + 3 * closePrices[i - 7]
+                 + 2 * closePrices[i - 8] + closePrices[i - 9]) / 55)
+        contract.data[self.average] = averages
+
+    def shorten_positions(self):
+        for tick in self.contracts.keys():
+            pos = 0
+            if tick in self.twsPositions.index:
+                pos = self.twsPositions.loc[tick, 'Position']
+            self.positions.loc[tick] = pos, 0.0
+
+    def create_ibapi_contracts(self):
+        for tick in self.contracts.keys():
+            con = self.contracts[tick]
+            # if tick[:2] in ['ZC', 'ZL', 'ZW', 'ZM', 'ZS']:
+            #     curr_local_symbol = con.switch_tick_format()
+            #     next_local_symbol = con.switch_tick_format(con.next_tick)
+            # else:
+            #     curr_local_symbol = tick
+            #     next_local_symbol = con.next_tick
+            curr_local_symbol = tick
+            ibapi_contract = self.app.Future_contract(con.ticker[:2], curr_local_symbol, con.multiplier,
+                                                      exchange=con.exchange,
+                                                      con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
+            # next_ib_contract = self.app.Future_contract(con.ticker[:-2], next_local_symbol, con.multiplier,
+            #                                             exchange=con.exchange,
+            #                                             con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
+            con.trade_contract = ibapi_contract
+            con.data_contract = ibapi_contract
+            # con.next_ib_contract = next_ib_contract
+
+
+class CurrencyStrategy(Strategy):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.interval = 30
+        self.average = '48SMA'
+
+    def create_ibapi_contracts(self):
+        for tick in self.contracts.keys():
+            con = self.contracts[tick]
+            symbol, curr = tick.split(".")
+            ibapi_contract = self.app.currency_contract(symbol, curr)
+            ibapi_contract.localSymbol = tick
+            con.data_contract = ibapi_contract
+            con.trade_contract = ibapi_contract
+
+    def get_rsi_from_df(self, contract, tries=0):
+        try:
+            if tries > 3:
+                return 50
+            df = contract.data
+            if contract.working_bars:
+                i = 0
+            else:
+                i = -1
+            tries = 0
+            while len(df.index) < 5:
+                if tries >= 15:
+                    print('Unable to get {} rsi from dataframe'.format(contract.ticker))
+                    return 50
+                t.sleep(1)
+            if 'RSI' in df.columns:
+                rsi = df.iloc[i - 1]['RSI']
+            else:
+                self.calculate_rsi(contract)
+                return self.get_rsi_from_df(contract, tries=tries + 1)
+            return rsi
+        except IndexError:
+            return 50
+
+    def long_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        rsi = self.get_rsi_from_df(contract)
+        if contract.position > 0 or not contract.allowInceptions:
+            return False
+        else:
+            try:
+                if bars[3] > bars[2] > bars[1] > bars[0] and rsi < 60:  # Four increasing in a row
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(error)
+                return False
+
+    def short_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        rsi = self.get_rsi_from_df(contract)
+        if contract.position < 0 or not contract.allowInceptions:
+            return False
+        else:
+            try:
+                if bars[3] < bars[2] < bars[1] < bars[0] and rsi > 45:
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(error)
+                return False
+
+    def close_long_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        rsi = self.get_rsi_from_df(contract)
+        if contract.position <= 0:
+            return False
+        else:
+            try:
+                if bars[3] < bars[2] and bars[3] < bars[0] or rsi > 70:
+                    return True
+                else:
+                    return False
+            except (IndexError, TypeError) as error:
+                print(error)
+                return False
+
+    def close_short_signal(self, contract, working_bar=False):
+        contract = contract
+        bars = self.get_bars_from_df(contract)
+        rsi = self.get_rsi_from_df(contract)
+        if contract.position >= 0:
+            return False
+        else:
+            try:
+                if bars[3] > bars[2] and bars[3] > bars[0] or rsi < 20:
+                    return True
+                else:
+                    return False
+            except:
+                return False
+
+    def calculate_moving_averages(self, contract):
+        contract.data[self.average] = contract.data['Close'].rolling(48).mean()
+        i = 0
+        while self.average not in contract.data.columns or pd.isnull(contract.data[self.average].iloc[-8]):
+            if i >= 60:
+                print('Average not calculating')
+                self.manual_sma(contract, 48, 'Close', self.average)
+            t.sleep(0.25)
+            i += 1
+
+    def calculate_rsi(self, contract):
+        diff = contract.data['Close'].diff()
+        gain = diff.clip(lower=0)
+        loss = -1 * diff.clip(upper=0)
+        averageGain = [0.0] * 8
+        firstSum = 0
+        for i in range(1, len(gain)):
+            if i < 8:
+                firstSum += gain[i]
+            elif i == 8:
+                firstSum += gain[i]
+                firstAvg = firstSum / 9
+                averageGain.append(firstAvg)
+            else:
+                nextAvg = (averageGain[-1] * 8 + gain[i]) / 9
+                averageGain.append(nextAvg)
+
+        firstSum = 0
+        averageLoss = [0.0] * 8
+        for i in range(1, len(loss)):
+            if i < 8:
+                firstSum += loss[i]
+            elif i == 8:
+                firstSum += loss[i]
+                firstAvg = firstSum / 9
+                averageLoss.append(firstAvg)
+            else:
+                nextAvg = (averageLoss[-1] * 8 + loss[i]) / 9
+                averageLoss.append(nextAvg)
+
+        rs = [0.0] * len(gain)
+        rsi = [0.0] * len(gain)
+        for i in range(0, len(gain)):
+            if averageLoss[i] != 0:
+                rs[i] = averageGain[i] / averageLoss[i]
+            rsi[i] = 100 - (100 / (1 + rs[i]))
+        # contract.data['Gains'] = gain
+        # contract.data['Losses'] = loss
+        # contract.data['AvgGain'] = averageGain
+        # contract.data['AvgLoss'] = averageLoss
+        # contract.data['RS'] = rs
+        contract.data['RSI'] = rsi

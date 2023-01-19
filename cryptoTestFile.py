@@ -6,7 +6,7 @@ from threading import Thread
 import pandas as pd
 
 import util
-from contracts import Contract, VixContract, CryptContract
+from contracts import Contract, VixContract, CryptoContract
 from strategies import StockThirtyMin, VixFiveMin, Crypto
 from IBAPI import IBapi, Connection
 
@@ -55,10 +55,10 @@ def create_contracts_crypto():
     Creates a contract for the Cryptos
     return: [Contract]
     """
-    eth_contract = CryptContract('ETH', multiplier=50, exchange='CME', first_trade=time(2, 0),
+    eth_contract = CryptoContract('ETH', multiplier=50, exchange='CME', first_trade=time(2, 0),
                                  first_bar=time(2, 0),
                                  last_trade=time(15, 30), last_bar=time(15, 0))
-    bit_contract = CryptContract('BRR', multiplier=5, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
+    bit_contract = CryptoContract('BRR', multiplier=5, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
                                  last_trade=time(15, 30), last_bar=time(15, 0))
 
     return [eth_contract]
