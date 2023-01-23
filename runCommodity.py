@@ -68,16 +68,16 @@ def create_contracts_comm():
 
     # Platinum October
     contracts.append(
-        CommodityContract('PL', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+        CommodityContract('PL', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
-                          first_bar=time(7, 0), last_bar=time(hour=15, minute=0),
+                          first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
                           multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=2))
 
     # # Silver December
     contracts.append(
-        CommodityContract('SI', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+        CommodityContract('SI', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
-                          first_bar=time(7, 0), last_bar=time(hour=15, minute=0),
+                          first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
                           multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=2))
 
     # # GOLD October

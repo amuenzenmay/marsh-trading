@@ -24,7 +24,7 @@ class Contract:
         self.working_bars = kwargs.get('working_bars', False)
         self.allowInceptions = kwargs.get('allowInceptions', True)
         self.allowAdjustment = kwargs.get('allowAdjustment', True)
-        self.firstTrade = kwargs.get('first_trade', datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)) # The time of the first trade
+        self.firstTrade = kwargs.get('first_trade', datetime.now().replace(hour=9, minute=0, second=0, microsecond=0))  # The time of the first trade
         self.lastTrade = kwargs.get('last_trade', datetime.now().replace(hour=14, minute=30, second=0, microsecond=0))  # Time of the last trade
         self.firstBar = kwargs.get('first_bar', time(hour=8, minute=30, second=0))  # Last Bar included in data
         self.lastBar = kwargs.get('last_bar', time(hour=14, minute=30, second=0))  # Last Bar included in data
@@ -284,7 +284,7 @@ class CurrencyContract(Contract):
 
     def getTradeAmount(self, side='', size_type=''):
         try:
-            value = int(self.notional // self.lastClose)
+            value = int(self.notional * self.lastClose)  # Must multiply by the last close for the currencies
             return round(max(value, 1), -3)  # round to the nearest thousands
         except ValueError:
             print(self.ticker, " could not calculate trade amount")
