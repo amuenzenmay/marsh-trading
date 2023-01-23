@@ -24,8 +24,8 @@ class Contract:
         self.working_bars = kwargs.get('working_bars', False)
         self.allowInceptions = kwargs.get('allowInceptions', True)
         self.allowAdjustment = kwargs.get('allowAdjustment', True)
-        self.firstTrade = kwargs.get('first_trade', time(hour=9, minute=0, second=0))  # The time of the first trade
-        self.lastTrade = kwargs.get('last_trade', time(hour=14, minute=30, second=0))  # Time of the last trade
+        self.firstTrade = kwargs.get('first_trade', datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)) # The time of the first trade
+        self.lastTrade = kwargs.get('last_trade', datetime.now().replace(hour=14, minute=30, second=0, microsecond=0))  # Time of the last trade
         self.firstBar = kwargs.get('first_bar', time(hour=8, minute=30, second=0))  # Last Bar included in data
         self.lastBar = kwargs.get('last_bar', time(hour=14, minute=30, second=0))  # Last Bar included in data
         self.account = kwargs.get('account', '')
@@ -70,27 +70,31 @@ class Contract:
     def simple_ending(self):
         """Returns true if and last execution time is along the normal interval and the last execution does not equal
         the start of the next bar"""
-        return self.lastTrade.minute % self.interval == 0 and self.lastBar == self.lastTrade
+        return self.lastTrade.minute % self.interval == 0 and self.lastBar == self.lastTrade.time()
 
     def terminate(self):
         """Returns True if the time of last execution has already passed.
 
         :return Boolean"""
-        utc_date = datetime.now(tz=pytz.timezone('UTC')).date()
-        comb_end_time = datetime.combine(utc_date, self.lastTrade)
-        tz = self.timezone
-        loc_end_time = tz.localize(comb_end_time)
-        return loc_end_time < datetime.now(tz=self.timezone).replace(second=0, microsecond=0)
+        # utc_date = datetime.now(tz=pytz.timezone('UTC')).date()
+        # comb_end_time = datetime.combine(utc_date, self.lastTrade.time())
+        # tz = self.timezone
+        # loc_end_time = tz.localize(comb_end_time)
+        # return loc_end_time < datetime.now(tz=self.timezone).replace(second=0, microsecond=0)
+        if self.lastTrade < datetime.now().replace(second=0, microsecond=0):
+            return True
+        else:
+            return False
 
     def final_execution(self):
-        return self.lastTrade == datetime.now(tz=self.timezone).replace(second=0, microsecond=0).time()
+        return self.lastTrade == datetime.now().replace(second=0, microsecond=0)
 
     def last_trade(self):
         """Returs True if the contract is on its last trade of the day.
 
         :return Boolean
         """
-        return self.lastTrade <= datetime.now(tz=self.timezone).replace(second=0, microsecond=0).time()
+        return self.lastTrade <= datetime.now().replace(second=0, microsecond=0)
 
     def set_ticker(self, string):
         self.ticker = string
@@ -119,6 +123,12 @@ class Contract:
             self.allowInceptions = False
         else:
             self.allowInceptions = True
+
+    def set_last_trade(self):
+        pass
+
+    def set_first_trade(self):
+        pass
 
 
 class FutureContract(Contract):
@@ -250,12 +260,47 @@ class CommodityContract(FutureContract):
     def getTradeAmount(self, side='', size_type=''):
         return self.hardTradeValue
 
+    def set_last_trade(self):
+        if datetime.now().time() > time(16, 15):
+            self.lastTrade = self.lastTrade + timedelta(days=1)
+        else:
+            self.lastTrade = self.lastTrade
+
+    def set_first_trade(self):
+        if datetime.now().time() > time(16, 15):
+            self.firstTrade = self.firstTrade + timedelta(days=1)
+        else:
+            self.firstTrade = self.firstTrade
+
 
 class CurrencyContract(Contract):
     def __init__(self, ticker, **kwargs):
         super().__init__(ticker, **kwargs)
         self.firstBar = time(0, 0)
         self.lastBar = time(23, 30)
-        self.firstTrade = time(2, 0)
-        self.lastTrade = time(17, 0)
+        self.firstTrade = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
+        self.lastTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+        self.interval = 30
+
+    def getTradeAmount(self, side='', size_type=''):
+        try:
+            value = int(self.notional // self.lastClose)
+            return round(max(value, 1), -3)  # round to the nearest thousands
+        except ValueError:
+            print(self.ticker, " could not calculate trade amount")
+            return 0
+
+    def set_last_trade(self):
+        if datetime.now().time() > time(16, 15):
+            self.lastTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
+        else:
+            self.lastTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+
+    def set_first_trade(self):
+        if datetime.now().time() > time(16, 15):
+            self.firstTrade = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
+        else:
+            self.firstTrade = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0) - timedelta(days=1)
+
+
 

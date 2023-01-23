@@ -1,6 +1,6 @@
 import threading
 import time as t
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from threading import Thread
 
 import util
@@ -15,6 +15,7 @@ app = IBapi()
 Currencies = {'USD.JPY': 229484467, 'USD.ZAR': 230949949, 'GBP.USD': 230949810, 'GBP.JPY': 229484470,
               'GBP.ZAR': 230949991, 'EUR.USD': 143916318, 'EUR.JPY': 229484473, 'EUR.GBP': 143916322,
               'EUR.ZAR': 230949992}
+# Currencies = {'USD.JPY': 229484467, 'EUR.JPY': 229484473}
 
 
 def runLoop():
@@ -67,13 +68,15 @@ def create_contracts_comm():
 
     # Platinum October
     contracts.append(
-        CommodityContract('PL', first_trade=time(hour=7, minute=30), last_trade=time(hour=15, minute=30),
+        CommodityContract('PL', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                           first_bar=time(7, 0), last_bar=time(hour=15, minute=0),
                           multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=2))
 
     # # Silver December
     contracts.append(
-        CommodityContract('SI', first_trade=time(hour=7, minute=30), last_trade=time(hour=15, minute=30),
+        CommodityContract('SI', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                           first_bar=time(7, 0), last_bar=time(hour=15, minute=0),
                           multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=2))
 
@@ -85,49 +88,57 @@ def create_contracts_comm():
 
     # # Lean Hogs October (RTH actually goes to 13:05)
     contracts.append(
-        CommodityContract('HE', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=0),
+        CommodityContract('HE', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
                           multiplier=40000, months=[2, 4, 6, 7, 8, 10, 12], exchange='CME', trade_amount=2))
 
     # # Live Cattle October (RTH actually goes to 13:05)
     contracts.append(
-        CommodityContract('LE', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=0),
+        CommodityContract('LE', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
                           multiplier=40000, months=[2, 4, 6, 8, 10, 12], exchange='CME', trade_amount=2))
 
     # # Feeder Cattle November (RTH actually goes to 13:05)
     contracts.append(
-        CommodityContract('GF', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=0),
+        CommodityContract('GF', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
                           multiplier=50000, months=[1, 3, 5, 8, 9, 11], exchange='CME', trade_amount=2))
 
     # # Corn December (RTH actually goes to 13:20)
     contracts.append(
-        CommodityContract('ZC', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=15),
+        CommodityContract('ZC', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
                           multiplier=5000, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=2))
 
     # # Soybeans November (RTH actually goes to 13:20)
     contracts.append(
-        CommodityContract('ZS', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=15),
+        CommodityContract('ZS', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
                           multiplier=5000, months=[1, 3, 5, 7, 11], exchange='CBOT', trade_amount=2))
 
     # # Wheat December (RTH actually goes to 13:20)
     contracts.append(
-        CommodityContract('ZW', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=15),
+        CommodityContract('ZW', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
                           multiplier=5000, months=[3, 5, 7, 9, 12], exchange='CBOT', trade_amount=2))
 
     # # Bean Oil December (RTH actually goes to 13:20)
     contracts.append(
-        CommodityContract('ZL', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=15),
+        CommodityContract('ZL', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
                           multiplier=60000, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=2))
 
     # # Soymeal December (RTH actually goes to 13:20)
     contracts.append(
-        CommodityContract('ZM', first_trade=time(hour=9, minute=0), last_trade=time(hour=13, minute=15),
+        CommodityContract('ZM', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
                           multiplier=100, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=2))
 
@@ -258,31 +269,39 @@ def contract_iteration(strategy, contract):
 
 
 def strategy_scheduler(strategy):
-    while datetime.now().replace(second=0, microsecond=0).time() < strategy.startTime:
-        t.sleep(1)
+    if datetime.now().replace(second=0, microsecond=0) < strategy.startTime:
+        print(strategy.name, "waiting")
+        while datetime.now().replace(second=0, microsecond=0) < strategy.startTime:
+            t.sleep(1)
+    print(strategy.name, " starting")
     strategy_iteration(strategy)
 
 
 def contract_scheduler(strategy, contract):
-    while datetime.now().replace(second=0, microsecond=0).time() < contract.firstTrade:
-        t.sleep(1)
+    if datetime.now().replace(second=0, microsecond=0) < contract.firstTrade:
+        print(contract.ticker, "waiting")
+        while datetime.now().replace(second=0, microsecond=0) < contract.firstTrade:
+            t.sleep(1)
     # while datetime.now().minute % strategy.interval >= 10:
     #     t.sleep(1)
+    print(contract.ticker, "starting")
     contract_iteration(strategy, contract)
 
 
-def start_strategy(strategy):
-    while datetime.now().replace(second=0, microsecond=0).time() > strategy.endTime:
-        print(strategy.name)
-        t.sleep(20)
-    strategy_scheduler(strategy)
-
-
-def start_contract(contract):
-    while datetime.now().replace(second=0, microsecond=0).time() > contract.lastTrade:
-        print(contract.ticker)
-        t.sleep(30)
-    strategy_scheduler(contract)
+# def start_strategy(strategy):
+#     if datetime.now().replace(second=0, microsecond=0) > strategy.endTime:
+#         print(strategy.name, " waiting")
+#         while datetime.now().replace(second=0, microsecond=0) > strategy.endTime:
+#             t.sleep(5)
+#     strategy_scheduler(strategy)
+#
+#
+# def start_contract(strategy, contract):
+#     if datetime.now().replace(second=0, microsecond=0) > contract.lastTrade:
+#         print(contract.ticker, "waiting")
+#         while datetime.now().replace(second=0, microsecond=0) > contract.lastTrade:
+#             t.sleep(5)
+#     contract_iteration(strategy, contract)
 
 
 def start_threads(strategies):
@@ -292,7 +311,7 @@ def start_threads(strategies):
     """
     threads = []
     for strategy in strategies:
-        threads.append(Thread(target=start_strategy, args=(strategy,)))
+        threads.append(Thread(target=strategy_scheduler, args=(strategy,)))
         threads[-1].name = strategy.name
         threads[-1].start()
         for con in strategy.contracts.keys():
@@ -323,8 +342,8 @@ if __name__ == '__main__':
     converter = CurrencyConverter()
     # Rates are from USD to the respective currency
     converter.rates = {'USD': 1,
-                       'EUR': 0.98,
-                       'GBP': 0.82,
+                       'EUR': 0.926,
+                       'GBP': 0.807,
                        'JPY': 134.33}
 
     """Future ALGOS: 'GSFF ALGOS'
@@ -334,13 +353,22 @@ if __name__ == '__main__':
     limit_time is in seconds
     day_algo_time and last_algo_time are in minutes"""
 
-    com_strategy = CommodityStrategy(app=app, account='U11095454', order_type='Adaptive',
-                                     day_algo_time=25, endTime=time(15, 45))
+    # com_endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
+    com_strategy = CommodityStrategy(app=app, account='DU6393014', order_type='Adaptive',
+                                     day_algo_time=25)
     com_strategy.set_contracts(com_contracts, 10)
+    com_strategy.set_start_time()
+    com_strategy.set_end_time()
 
-    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=9, order_type='Arrival',
-                                     day_algo_time=10, endTime=time(17, 0), barType='MIDPOINT')
+    # curr_endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
+    # curr_startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
+    curr_strategy = CurrencyStrategy(app=app, account='DU6393014', notional=693000, order_type='Market',
+                                     day_algo_time=10,
+                                     barType='MIDPOINT')
+    curr_strategy.set_start_time()
+    curr_strategy.set_end_time()
     curr_strategy.set_contracts(curr_contracts)
+
 
     for tick in curr_strategy.contracts:
         con = curr_strategy.contracts[tick]

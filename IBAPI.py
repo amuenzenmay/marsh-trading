@@ -69,6 +69,7 @@ class IBapi(EWrapper, EClient):
         self.tws_pnl = pd.DataFrame([], columns=['Daily', 'Realized', 'Unrealized'])
         self.single_pnl = pd.DataFrame([], columns=['Daily', 'Unrealized', 'Realized', 'Value'])
         self.open_orders = {}
+        self.transmit_order = True
 
     def error(self, reqId: int, errorCode: int, errorString: str, advancedOrderRejectJson: str = ""):
         super().error(reqId, errorCode, errorString)
@@ -175,7 +176,7 @@ class IBapi(EWrapper, EClient):
             endBar = times[1]  # End bar time is included in the dataframes
             if barDate.date() == date(2023, 1, 16):
                 endBar = time(hour=15, minute=0)  # This bar time DOES get included
-            if startBar <= barDate.time() <= endBar:
+            elif startBar <= barDate.time() <= endBar:
                 self.barData[reqId].append([barDate, bar.close, bar.volume])
 
     def historicalDataUpdate(self, reqId, bar):
@@ -209,8 +210,7 @@ class IBapi(EWrapper, EClient):
         except IndexError:
             self.single_pnl.loc[reqId] = dailyPnL, unrealizedPnL, realizedPnL, value
 
-    @staticmethod
-    def create_order(direction, qty, orderType, transmit=True, lmtPrice=sys.float_info.max):
+    def create_order(self, direction, qty, orderType, transmit=True, lmtPrice=sys.float_info.max):
         order = Order()
         order.action = direction
         order.totalQuantity = qty
@@ -219,6 +219,7 @@ class IBapi(EWrapper, EClient):
         order.lmtPrice = lmtPrice
         order.eTradeOnly = False
         order.firmQuoteOnly = False
+        order.transmit = self.transmit_order
         return order
 
     def fill_arrival_params(self, baseOrder, end):

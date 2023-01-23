@@ -24,8 +24,8 @@ class Strategy:
         self.app = kwargs.get('app', None)
         self.positions = pd.DataFrame(columns=['Ticker', 'Position', 'PnL'])
         self.positions.set_index('Ticker', inplace=True)
-        self.startTime = kwargs.get('startTime', time(9, 30))
-        self.endTime = kwargs.get('endTime', time(hour=15, minute=30, second=0))
+        self.startTime = kwargs.get('startTime', datetime.now().replace(hour=9, minute=0, second=0, microsecond=0))
+        self.endTime = kwargs.get('endTime', datetime.now().replace(hour=15, minute=30, second=0, microsecond=0))
         self.day_algo_time = kwargs.get('day_algo_time', 20)
         self.last_algo_time = kwargs.get('last_algo_time', 3)
         self.strategy_Data = pd.DataFrame()
@@ -192,6 +192,8 @@ class Strategy:
             contract.account = self.account
             contract.interval = self.interval
             self.contracts[contract.ticker] = contract
+            contract.set_first_trade()
+            contract.set_last_trade()
         if self.data_source == 'IBAPI':
             self.create_ibapi_contracts()
 
@@ -356,23 +358,26 @@ class Strategy:
 
     def end_day(self, tzone=pytz.timezone('America/Chicago')):
         """Returns True if the strategy has reached the end of its day"""
-        utc_date = datetime.now(tz=pytz.timezone('UTC')).date()
-        comb_end_time = datetime.combine(utc_date, self.endTime)
-        tz = self.timezone
-        loc_end_time = tz.localize(comb_end_time)
-        if loc_end_time <= datetime.now(tz=tzone).replace(second=0, microsecond=0):
+        # utc_date = datetime.now(tz=pytz.timezone('UTC')).date()
+        # comb_end_time = datetime.combine(utc_date, self.endTime.time())
+        # tz = self.timezone
+        # loc_end_time = tz.localize(comb_end_time)
+        # if loc_end_time <= datetime.now(tz=tzone).replace(second=0, microsecond=0):
+        #     return True
+        # else:
+        #     return False
+        if self.endTime <= datetime.now().replace(second=0, microsecond=0):
             return True
         else:
             return False
 
     def wait_time(self, current_time=None):
         if current_time is None:
-            current_time = datetime.now(tz=self.timezone).replace(second=0, microsecond=0)
-        last_full = datetime.now(tz=self.timezone).replace(hour=self.endTime.hour,
-                                                           minute=self.endTime.minute - (
-                                                                       self.endTime.minute % self.interval),
-                                                           second=0, microsecond=0)
-        if current_time.time() >= last_full.time():
+            current_time = datetime.now().replace(second=0, microsecond=0)
+        last_full = self.endTime.replace(hour=self.endTime.hour,
+                                         minute=self.endTime.minute - (self.endTime.minute % self.interval),
+                                         second=0, microsecond=0)
+        if current_time >= last_full:
             if self.endTime.minute % self.interval == 0:
                 return self.interval - (current_time.minute % self.interval)
             else:
@@ -944,8 +949,8 @@ class VixFiveMin(Strategy):
         self.numberBars = 4
         self.average = '2MA'
         self.interval = 5
-        self.startTime = time(10, 15)
-        self.endTime = time(15, 15)
+        self.startTime = datetime.now().replace(hour=10, minute=15, second=0, microsecond=0)
+        self.endTime = datetime.now().replace(hour=15, minute=15, second=0, microsecond=0)
         self.name = 'Vix5'
 
     def convert_pricing(self, contract):
@@ -1086,8 +1091,8 @@ class Crypto(Strategy):
         self.numberBars = 4
         self.average = '56SMA'
         self.interval = 30
-        self.startTime = time(2, 0)
-        self.endTime = time(15, 30)
+        self.startTime = datetime.now().replace(hour=2, minute=0, second=0, microsecond=0)
+        self.endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
         self.name = 'Crypto'
 
     # TODO implement contract creation
@@ -1241,6 +1246,7 @@ class CommodityStrategy(ThirtyMin):
         self.average = '10WMA'
         self.notional = 1000000
         self.closed_contracts = {}
+        self.name = 'Commodity'
 
     def save_contract_months(self):
         futures = util.read_json('CommodityContracts.json')
@@ -1261,6 +1267,8 @@ class CommodityStrategy(ThirtyMin):
             contract.account = self.account
             contract.interval = self.interval
             self.contracts[contract.ticker] = contract
+            contract.set_first_trade()
+            contract.set_last_trade()
         if self.data_source == 'IBAPI':
             self.create_ibapi_contracts()
 
@@ -1400,10 +1408,23 @@ class CommodityStrategy(ThirtyMin):
             con.data_contract = ibapi_contract
             # con.next_ib_contract = next_ib_contract
 
+    def set_end_time(self):
+        if datetime.now().time() > time(15, 45):
+            self.endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0) + timedelta(days=1)
+        else:
+            self.endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
+
+    def set_start_time(self):
+        if datetime.now().time() > time(15, 45):
+            self.startTime = datetime.now().replace(hour=7, minute=30, second=0, microsecond=0) + timedelta(days=1)
+        else:
+            self.startTime = datetime.now().replace(hour=7, minute=30, second=0, microsecond=0)
+
 
 class CurrencyStrategy(Strategy):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.name = 'Currency'
         self.interval = 30
         self.average = '48SMA'
 
@@ -1555,3 +1576,15 @@ class CurrencyStrategy(Strategy):
         # contract.data['AvgLoss'] = averageLoss
         # contract.data['RS'] = rs
         contract.data['RSI'] = rsi
+
+    def set_end_time(self):
+        if datetime.now().time() > time(16, 15):
+            self.endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
+        else:
+            self.endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+
+    def set_start_time(self):
+        if datetime.now().time() > time(16, 15):
+            self.startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
+        else:
+            self.startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0) - timedelta(days=1)

@@ -31,7 +31,9 @@ def create_contracts_stk():
     for tick in Stocks.keys():
         inceptions = True
         contracts.append(
-            Contract(tick, exchange='SMART', allowInceptions=inceptions, last_trade=time(14, 58), conid=Stocks[tick]))
+            Contract(tick, exchange='SMART', allowInceptions=inceptions,
+                     last_trade=datetime.now().replace(hour=14, minute=58, second=0, microsecond=0),
+                     conid=Stocks[tick]))
 
     return contracts
 
@@ -42,7 +44,8 @@ def create_contracts_vix():
 
     return: [Contract]
     """
-    vix_contract = VixContract('VX', first_trade=time(10, 30), last_trade=time(hour=15, minute=10),
+    vix_contract = VixContract('VX', first_trade=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
+                               last_trade=datetime.now().replace(hour=15, minute=10, second=0, microsecond=0),
                                first_bar=time(8, 30), last_bar=time(hour=15, minute=5, second=0),
                                multiplier=1000, exchange='CFE')
     vix_contract.current_weights = (0, 1.0)
@@ -55,11 +58,16 @@ def create_contracts_crypto():
     Creates a contract for the Cryptos
     return: [Contract]
     """
-    eth_contract = CryptoContract('ETH', multiplier=50, exchange='CME', first_trade=time(2, 0),
-                                 first_bar=time(2, 0),
-                                 last_trade=time(15, 30), last_bar=time(15, 0))
-    bit_contract = CryptoContract('BRR', multiplier=5, exchange='CME', first_trade=time(2, 0), first_bar=time(2, 0),
-                                 last_trade=time(15, 30), last_bar=time(15, 0))
+    eth_contract = CryptoContract('ETH', multiplier=50, exchange='CME',
+                                  first_trade=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
+                                  first_bar=time(1, 30),
+                                  last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
+                                  last_bar=time(15, 0))
+    bit_contract = CryptoContract('BRR', multiplier=5, exchange='CME',
+                                  first_trade=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
+                                  first_bar=time(1, 30),
+                                  last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
+                                  last_bar=time(15, 0))
 
     return [eth_contract]
 
@@ -158,13 +166,16 @@ def contract_iteration(strategy, contract):
 
 
 def strategy_scheduler(strategy):
-    # while datetime.now().minute % strategy.interval != 0:
-    #     t.sleep(1)
+    if datetime.now().replace(second=0, microsecond=0) < strategy.startTime:
+        print(strategy.name, "waiting")
+        while datetime.now().replace(second=0, microsecond=0) < strategy.startTime:
+            t.sleep(1)
+    print(strategy.name, " starting")
     strategy_iteration(strategy)
 
 
 def contract_scheduler(strategy, contract):
-    while datetime.now().replace(second=0, microsecond=0).time() < contract.firstTrade:
+    while datetime.now().replace(second=0, microsecond=0) < contract.firstTrade:
         t.sleep(1)
     while datetime.now().minute % strategy.interval >= (strategy.interval - strategy.day_algo_time):
         t.sleep(1)
@@ -216,15 +227,19 @@ if __name__ == '__main__':
 
     # STOCK STRATEGY at TWS
     stk_contracts = create_contracts_stk()
-    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=167614, order_type='Adaptive', day_algo_time=25,
-                                  endTime=time(14, 58), barType='TRADES')  # Should be TWAP
+    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=167614, order_type='Adaptive',
+                                  day_algo_time=25,
+                                  endTime=datetime.now().replace(hour=14, minute=58, second=0, microsecond=0),
+                                  barType='TRADES')  # Should be TWAP
     stk_strategy.set_contracts(stk_contracts)
 
     # VIX STRATEGY at TWS
     vix_contracts = create_contracts_vix()
     set_contract_months(vix_contracts)
     vix_strategy = VixFiveMin(app=app, account='U11095454', notional=20000, order_type='Adaptive',
-                              limit_time=180, day_algo_time=1.5, startTime=time(10, 30), endTime=time(15, 10),
+                              limit_time=180, day_algo_time=1.5,
+                              startTime=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
+                              endTime=datetime.now().replace(hour=15, minute=10, second=0, microsecond=0),
                               barType='TRADES')  # should be limit
     # Set up the contract to be able to request data from IB
     vix_strategy.set_contracts(vix_contracts)
@@ -232,8 +247,10 @@ if __name__ == '__main__':
     # CRYPTO STRATEGY at TWS
     crypto_contracts = create_contracts_crypto()
     set_contract_months(crypto_contracts)
-    crypto_strategy = Crypto(app=app, account='U11095454', notional=65000, order_type='Adaptive', startTime=time(2, 0),
-                             endTime=time(15, 30), day_algo_time=20, barType='AGGTRADES')
+    crypto_strategy = Crypto(app=app, account='U11095454', notional=65000, order_type='Adaptive',
+                             startTime=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
+                             endTime=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
+                             day_algo_time=20, barType='AGGTRADES')
     crypto_strategy.set_contracts(crypto_contracts)
     get_long_ma(crypto_strategy)
 
