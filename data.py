@@ -115,7 +115,7 @@ class Data:
         self.app.idMap[req_id] = ib_contract.symbol
         self.app.barData[req_id] = []
         self.app.timezones[req_id] = contract.timezone
-        self.app.reqHistoricalData(req_id, ib_contract, '', '1 M', str(interval) + ' mins', bar_type, 0, 1,
+        self.app.reqHistoricalData(req_id, ib_contract, '', '2 M', str(interval) + ' mins', bar_type, 0, 1,
                                    False, [])
 
     def requestVolumeIBAPI(self, ib_contract, contract):

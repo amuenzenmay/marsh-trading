@@ -71,14 +71,14 @@ def create_contracts_comm():
         CommodityContract('PL', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
-                          multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=2))
+                          multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=1))
 
     # # Silver December
     contracts.append(
         CommodityContract('SI', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
-                          multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=2))
+                          multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=3))
 
     # # GOLD October
     # contracts.append(
@@ -91,7 +91,7 @@ def create_contracts_comm():
         CommodityContract('HE', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
-                          multiplier=40000, months=[2, 4, 6, 7, 8, 10, 12], exchange='CME', trade_amount=2))
+                          multiplier=40000, months=[2, 4, 6, 7, 8, 10, 12], exchange='CME', trade_amount=1))
 
     # # Live Cattle October (RTH actually goes to 13:05)
     contracts.append(
@@ -105,7 +105,7 @@ def create_contracts_comm():
         CommodityContract('GF', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
-                          multiplier=50000, months=[1, 3, 5, 8, 9, 11], exchange='CME', trade_amount=2))
+                          multiplier=50000, months=[1, 3, 5, 8, 9, 11], exchange='CME', trade_amount=1))
 
     # # Corn December (RTH actually goes to 13:20)
     contracts.append(
@@ -119,28 +119,28 @@ def create_contracts_comm():
         CommodityContract('ZS', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
-                          multiplier=5000, months=[1, 3, 5, 7, 11], exchange='CBOT', trade_amount=2))
+                          multiplier=5000, months=[1, 3, 5, 7, 11], exchange='CBOT', trade_amount=1))
 
     # # Wheat December (RTH actually goes to 13:20)
     contracts.append(
         CommodityContract('ZW', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
-                          multiplier=5000, months=[3, 5, 7, 9, 12], exchange='CBOT', trade_amount=2))
+                          multiplier=5000, months=[3, 5, 7, 9, 12], exchange='CBOT', trade_amount=1))
 
     # # Bean Oil December (RTH actually goes to 13:20)
     contracts.append(
         CommodityContract('ZL', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
-                          multiplier=60000, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=2))
+                          multiplier=60000, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=1))
 
     # # Soymeal December (RTH actually goes to 13:20)
     contracts.append(
         CommodityContract('ZM', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=15, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
-                          multiplier=100, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=2))
+                          multiplier=100, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=1))
 
     # # Coffee December (Cut off at 12:27)
     # contracts.append(
@@ -332,7 +332,7 @@ if __name__ == '__main__':
     # startIBConnection(False)
     while datetime.now().replace(second=0, microsecond=0).time() < time(5, 0):
         t.sleep(1)
-    c = Connection(live=False)
+    c = Connection(live=True)
     app = c.app
 
     com_contracts = create_contracts_comm()
@@ -354,15 +354,15 @@ if __name__ == '__main__':
     day_algo_time and last_algo_time are in minutes"""
 
     # com_endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
-    com_strategy = CommodityStrategy(app=app, account='DU6393014', order_type='Adaptive',
-                                     day_algo_time=25)
+    com_strategy = CommodityStrategy(app=app, account='U11095454', order_type='Adaptive',
+                                     day_algo_time=5)
     com_strategy.set_contracts(com_contracts, 10)
     com_strategy.set_start_time()
     com_strategy.set_end_time()
 
     # curr_endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
     # curr_startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
-    curr_strategy = CurrencyStrategy(app=app, account='DU6393014', notional=693000, order_type='Market',
+    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=697158, order_type='Market',
                                      day_algo_time=10,
                                      barType='MIDPOINT')
     curr_strategy.set_start_time()

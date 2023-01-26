@@ -284,7 +284,7 @@ class CurrencyContract(Contract):
 
     def getTradeAmount(self, side='', size_type=''):
         try:
-            value = int(self.notional * self.lastClose)  # Must multiply by the last close for the currencies
+            value = int(self.notional)  # Must multiply by the last close for the currencies
             return round(max(value, 1), -3)  # round to the nearest thousands
         except ValueError:
             print(self.ticker, " could not calculate trade amount")

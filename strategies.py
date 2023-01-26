@@ -1234,7 +1234,7 @@ class Crypto(Strategy):
                 t.sleep(0.25)
 
             df = self.app.barDF[contract.data_id]
-            df['MA'] = df['Close'].rolling(312).mean()  # 560 for cash value
+            df['MA'] = df['Close'].rolling(460).mean()  # 560 for cash value
 
             contract.longMa = df['MA'].iloc[-2]
             t.sleep(0.25)

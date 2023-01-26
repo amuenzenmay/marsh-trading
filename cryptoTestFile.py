@@ -101,7 +101,7 @@ def get_long_ma(strategy):
     for tick in strategy.contracts.keys():
         con = strategy.contracts[tick]
         strategy.get_long_ma(con)
-        print(tick, " 312SMA: ", con.longMa)
+        print(tick, " 460SMA: ", con.longMa)
 
 
 def strategy_iteration(strategy):
@@ -227,7 +227,7 @@ if __name__ == '__main__':
 
     # STOCK STRATEGY at TWS
     stk_contracts = create_contracts_stk()
-    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=167614, order_type='Adaptive',
+    stk_strategy = StockThirtyMin(app=app, account='U11095454', notional=86175, order_type='Adaptive',
                                   day_algo_time=25,
                                   endTime=datetime.now().replace(hour=14, minute=58, second=0, microsecond=0),
                                   barType='TRADES')  # Should be TWAP
