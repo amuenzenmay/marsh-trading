@@ -63,7 +63,7 @@ class IBapi(EWrapper, EClient):
         self.barDF = {}  # ID to DataFrame
         self.dataTimes = {}
         self.timezone = {}
-        self.volume_request = True
+        self.volume_request = False
         self.timezones = {}  # 'America/Chicago'
         self.positions = pd.DataFrame([], columns=['Position', 'Average Cost'])
         self.tws_pnl = pd.DataFrame([], columns=['Daily', 'Realized', 'Unrealized'])
@@ -176,6 +176,8 @@ class IBapi(EWrapper, EClient):
             endBar = times[1]  # End bar time is included in the dataframes
             if barDate.date() == date(2023, 1, 16):
                 endBar = time(hour=15, minute=0)  # This bar time DOES get included
+            elif barDate.weekday() == 6 or barDate.weekday() == 5:
+                pass # exclude sundays
             elif startBar <= barDate.time() <= endBar:
                 self.barData[reqId].append([barDate, bar.close, bar.volume])
 

@@ -1578,13 +1578,15 @@ class CurrencyStrategy(Strategy):
         contract.data['RSI'] = rsi
 
     def set_end_time(self):
-        if datetime.now().time() > time(16, 15):
-            self.endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
+        if datetime.now().time() > time(16, 0):
+            self.endTime = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0) + timedelta(days=1)
         else:
-            self.endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+            self.endTime = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0)
 
     def set_start_time(self):
-        if datetime.now().time() > time(16, 15):
-            self.startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
+        if datetime.now().time() > time(16, 0):
+            self.startTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
         else:
-            self.startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0) - timedelta(days=1)
+            self.startTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) - timedelta(days=1)
+
+

@@ -278,8 +278,8 @@ class CurrencyContract(Contract):
         super().__init__(ticker, **kwargs)
         self.firstBar = time(0, 0)
         self.lastBar = time(23, 30)
-        self.firstTrade = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
-        self.lastTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+        self.firstTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+        self.lastTrade = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0)
         self.interval = 30
 
     def getTradeAmount(self, side='', size_type=''):
@@ -291,16 +291,16 @@ class CurrencyContract(Contract):
             return 0
 
     def set_last_trade(self):
-        if datetime.now().time() > time(16, 15):
-            self.lastTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
+        if datetime.now().time() > time(16, 0):
+            self.lastTrade = self.lastTrade + timedelta(days=1)
         else:
-            self.lastTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
+            self.lastTrade = self.lastTrade
 
     def set_first_trade(self):
-        if datetime.now().time() > time(16, 15):
-            self.firstTrade = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
+        if datetime.now().time() > time(16, 30):
+            self.firstTrade = self.firstTrade
         else:
-            self.firstTrade = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0) - timedelta(days=1)
+            self.firstTrade = self.firstTrade - timedelta(days=1)
 
 
 
