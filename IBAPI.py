@@ -229,7 +229,6 @@ class IBapi(EWrapper, EClient):
         baseOrder.algoParams = []
         baseOrder.algoParams.append(TagValue("maxPctVol", '0.01'))
         baseOrder.algoParams.append(TagValue("riskAversion", "Aggressive"))
-
         baseOrder.algoParams.append(TagValue("endTime", end))
         baseOrder.algoParams.append(TagValue("forceCompletion", '1'))
         baseOrder.algoParams.append(TagValue("allowPastEndTime", '0'))

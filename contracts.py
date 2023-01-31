@@ -278,8 +278,8 @@ class CurrencyContract(Contract):
         super().__init__(ticker, **kwargs)
         self.firstBar = time(0, 0)
         self.lastBar = time(23, 30)
-        self.firstTrade = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0)
-        self.lastTrade = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0)
+        self.firstTrade = datetime.now().replace(hour=19, minute=30, second=0, microsecond=0)
+        self.lastTrade = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
         self.interval = 30
 
     def getTradeAmount(self, side='', size_type=''):

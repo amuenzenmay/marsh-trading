@@ -362,8 +362,8 @@ if __name__ == '__main__':
 
     # curr_endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
     # curr_startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
-    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=697158, order_type='Market',
-                                     day_algo_time=10,
+    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=355590, order_type='Market',
+                                     day_algo_time=20, limit_time=1500,
                                      barType='MIDPOINT')
     curr_strategy.set_start_time()
     curr_strategy.set_end_time()

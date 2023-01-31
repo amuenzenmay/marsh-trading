@@ -38,7 +38,7 @@ class Order:
         self.algo_time = self.set_algo_time()
         self.timezone = kwargs.get('timezone', pytz.timezone('America/Chicago'))
         self.set_limit_time()
-
+        self.set_limit_price()
     def set_limit_time(self):
         """Change the limit time for the Vix five-minute strategy if it is past 3pm CT"""
         if self.strategy == 'Vix5' and \
@@ -46,6 +46,14 @@ class Order:
                 self.contract.allowInceptions:
             self.limit_time = 30
             self.vix_short_limit = True
+
+    def set_limit_price(self):
+        if self.side == "BUY":
+           self.limit_price *= 1.000012
+        else:
+            self.limit_price *= .9999988
+            round(self.limit_price, 4)
+
 
     @property
     def next_ids(self):
