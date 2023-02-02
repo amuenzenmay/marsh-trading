@@ -143,15 +143,18 @@ def create_contracts_comm():
                           multiplier=100, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=1))
 
     # # Coffee December (Cut off at 12:27)
-    # contracts.append(
-    #     CommodityContract('KC', first_trade=time(hour=7, minute=30), last_trade=time(hour=12, minute=27),
-    #                       first_bar=time(7, 0), last_bar=time(hour=12, minute=0),
-    #                       multiplier=37500, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=2))
+    contracts.append(
+         CommodityContract('KC', first_trade=datetime.now().replace(hour=8, minute=30, second=0, microsecond=0),
+                           last_trade=datetime.now().replace(hour=12, minute=27, second=0, microsecond=0),
+                           first_bar=time(8, 0), last_bar=time(hour=12, minute=0),
+                           multiplier=37500, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
 
     # # Cotton March (Cut off at 13:17)
-    # contracts.append(
-    #     CommodityContract('CT', first_trade=time(hour=7, minute=30), last_trade=time(hour=13, minute=17),
-    #                    first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
+    contracts.append(
+        CommodityContract('CT', first_trade=datetime.now().replace(hour=8, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=17, second=0, microsecond=0),
+                          first_bar=time(8, 0), last_bar=time(hour=13, minute=0),
+                          multiplier=50000, months=[3, 5, 7, 12], exchange='NYBOT', trade_amount=1))
 
     #                    multiplier=50000, months=[3, 5, 7, 12], exchange='NYBOT'))
     # # # Cocoa December (Cut off at 12:27)
@@ -161,10 +164,11 @@ def create_contracts_comm():
     #                    multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT'))
 
     # # Sugar March (Cut off at 11:57)
-    # contracts.append(
-    #     CommodityContract('SB', first_trade=time(hour=7, minute=30), last_trade=time(hour=11, minute=57),
-    #                    first_bar=time(7, 0), last_bar=time(hour=11, minute=30),
-    #                    multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT'))
+    contracts.append(
+        CommodityContract('SB', first_trade=datetime.now().replace(hour=8, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=11, minute=57, second=0, microsecond=0),
+                          first_bar=time(7, 30), last_bar=time(hour=11, minute=30),
+                          multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=2))
     return contracts
 
 
@@ -201,15 +205,23 @@ def set_contract_months(contracts):
             contract.set_ticker('PLJ3')
             contract.conId = 541450752
         elif contract.ticker == 'HE':
-            contract.set_ticker('HEG3')
-            contract.conId = 508146607
+            contract.set_ticker('HEJ3')
+            contract.conId = 520534377
         elif contract.ticker == 'LE':
-            contract.set_ticker('LEG3')
-            contract.conId = 511851967
+            contract.set_ticker('LEJ3')
+            contract.conId = 523805397
         elif contract.ticker == 'GF':
             contract.set_ticker('GFH3')
             contract.conId = 553809383
-
+        elif contract.ticker == 'KC':
+            contract.set_ticker('KCH3')
+            contract.conId = 415492841
+        elif contract.ticker == 'CT':
+            contract.set_ticker('CTH3')
+            contract.conId = 415492838
+        elif contract.ticker == 'SB':
+            contract.set_ticker('SBH3')
+            contract.conId = 415492855
 
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
@@ -362,7 +374,7 @@ if __name__ == '__main__':
 
     # curr_endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
     # curr_startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
-    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=355590, order_type='Market',
+    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=500000, order_type='Market',
                                      day_algo_time=20, limit_time=1500,
                                      barType='MIDPOINT')
     curr_strategy.set_start_time()
