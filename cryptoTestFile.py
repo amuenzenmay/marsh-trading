@@ -45,7 +45,7 @@ def create_contracts_vix():
     return: [Contract]
     """
     vix_contract = VixContract('VX', first_trade=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
-                               last_trade=datetime.now().replace(hour=15, minute=10, second=0, microsecond=0),
+                               last_trade=datetime.now().replace(hour=15, minute=5, second=0, microsecond=0),
                                first_bar=time(8, 30), last_bar=time(hour=15, minute=5, second=0),
                                multiplier=1000, exchange='CFE')
     vix_contract.current_weights = (0, 1.0)
@@ -90,8 +90,8 @@ def set_contract_months(contracts):
             contract.set_ticker('METF3')
             contract.conId = 576721278
         elif contract.ticker == 'ETH':
-            contract.set_ticker('ETHF3')
-            contract.conId = 576721275
+            contract.set_ticker('ETHG3')
+            contract.conId = 582067324
         elif contract.ticker == 'BRR':
             contract.set_ticker('BTCF3')
             contract.conId = 576721265
@@ -140,6 +140,7 @@ def contract_iteration(strategy, contract):
     strategy.get_bar_data(contract)
     if 'VX' in contract.ticker:
         print("Contract: {}".format(contract.lastClose))
+        contract.halt_inceptions()  # Stops inception trades after 14:50
 
     if contract.data is not None and (
             contract.ticker == 'ROKU' or 'VX' in contract.ticker or 'ETH' in contract.ticker
@@ -250,7 +251,7 @@ if __name__ == '__main__':
     crypto_strategy = Crypto(app=app, account='U11095454', notional=65000, order_type='Adaptive',
                              startTime=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
                              endTime=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
-                             day_algo_time=20, barType='AGGTRADES')
+                             day_algo_time=20, barType='MIDPOINT')
     crypto_strategy.set_contracts(crypto_contracts)
     get_long_ma(crypto_strategy)
 

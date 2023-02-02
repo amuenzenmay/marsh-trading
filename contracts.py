@@ -211,6 +211,14 @@ class VixContract(FutureContract):
         self.contango_weights = (0.0, 1.0)  # (long, short)
         self.backward_weights = (0.2, 0.8)  # (long, short)
 
+    def halt_inceptions(self):
+        """Set allow inceptions to false if nearing the end of the day."""
+        final_inception = datetime.now().replace(hour=14, minute=50, second=0, microsecond=0)
+        if final_inception.time() < datetime.now(tz=self.timezone).replace(second=0, microsecond=0).time():
+            self.allowInceptions = False
+        else:
+            self.allowInceptions = True
+
 
 class CryptoContract(FutureContract):
     """This contract type holds two other contracts. One contract is the cash value of the cryptocurrencies and its
