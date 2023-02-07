@@ -354,9 +354,9 @@ if __name__ == '__main__':
     converter = CurrencyConverter()
     # Rates are from USD to the respective currency
     converter.rates = {'USD': 1,
-                       'EUR': 0.926,
-                       'GBP': 0.807,
-                       'JPY': 134.33}
+                       'EUR': 0.9324,
+                       'GBP': 0.8317,
+                       'JPY': 132.65}
 
     """Future ALGOS: 'GSFF ALGOS'
     Future DMA: GSFF DMA
@@ -367,14 +367,14 @@ if __name__ == '__main__':
 
     # com_endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
     com_strategy = CommodityStrategy(app=app, account='U11095454', order_type='Adaptive',
-                                     day_algo_time=5)
+                                     day_algo_time=10)
     com_strategy.set_contracts(com_contracts, 10)
     com_strategy.set_start_time()
     com_strategy.set_end_time()
 
     # curr_endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
     # curr_startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
-    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=500000, order_type='Market',
+    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=300000, order_type='Market',
                                      day_algo_time=20, limit_time=1500,
                                      barType='MIDPOINT')
     curr_strategy.set_start_time()

@@ -52,7 +52,7 @@ class Order:
            self.limit_price *= 1.000012
         else:
             self.limit_price *= .9999988
-            round(self.limit_price, 4)
+            round(self.limit_price, 3)
 
 
     @property
