@@ -39,6 +39,7 @@ class Order:
         self.timezone = kwargs.get('timezone', pytz.timezone('America/Chicago'))
         self.set_limit_time()
         self.set_limit_price()
+
     def set_limit_time(self):
         """Change the limit time for the Vix five-minute strategy if it is past 3pm CT"""
         if self.strategy == 'Vix5' and \
@@ -49,10 +50,15 @@ class Order:
 
     def set_limit_price(self):
         if self.side == "BUY":
-           self.limit_price *= 1.000012
+            self.limit_price *= 1.000012
         else:
             self.limit_price *= .9999988
+        if self.contract.currency in ['USD', 'EUR', 'GBP']:
+            round(self.limit_price, 4)
+        elif self.contract.currency == 'ZAR':
             round(self.limit_price, 3)
+        elif self.contract.currency == 'JPY':
+            round(self.limit_price, 2)
 
 
     @property
