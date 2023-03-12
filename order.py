@@ -50,9 +50,9 @@ class Order:
 
     def set_limit_price(self):
         if self.side == "BUY":
-            self.limit_price *= 1.000012
+            self.limit_price *= 1
         else:
-            self.limit_price *= .9999988
+            self.limit_price *= 1
         if self.contract.currency in ['USD', 'EUR', 'GBP']:
             round(self.limit_price, 4)
         elif self.contract.currency == 'ZAR':

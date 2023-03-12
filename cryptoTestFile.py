@@ -62,12 +62,12 @@ def create_contracts_crypto():
                                   first_trade=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
                                   first_bar=time(1, 30),
                                   last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
-                                  last_bar=time(15, 0))
+                                  last_bar=time(15, 1))
     bit_contract = CryptoContract('BRR', multiplier=5, exchange='CME',
                                   first_trade=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
                                   first_bar=time(1, 30),
                                   last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
-                                  last_bar=time(15, 0))
+                                  last_bar=time(15, 1))
 
     return [eth_contract]
 
@@ -241,7 +241,7 @@ if __name__ == '__main__':
                               limit_time=180, day_algo_time=1.5,
                               startTime=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
                               endTime=datetime.now().replace(hour=15, minute=10, second=0, microsecond=0),
-                              barType='TRADES')  # should be limit
+                              barType='MIDPOINT')  # should be limit
     # Set up the contract to be able to request data from IB
     vix_strategy.set_contracts(vix_contracts)
 
