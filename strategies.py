@@ -1398,8 +1398,8 @@ class CommodityStrategy(ThirtyMin):
             #     curr_local_symbol = tick
             #     next_local_symbol = con.next_tick
             curr_local_symbol = tick
-            ibapi_contract = self.app.Future_contract(con.ticker[:2], curr_local_symbol, con.multiplier,
-                                                      exchange=con.exchange,
+            ibapi_contract = self.app.Future_contract(con.ticker[:-2], curr_local_symbol, con.multiplier,
+                                                      exchange=con.exchange, currency=con.currency,
                                                       con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
             # next_ib_contract = self.app.Future_contract(con.ticker[:-2], next_local_symbol, con.multiplier,
             #                                             exchange=con.exchange,

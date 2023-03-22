@@ -243,6 +243,8 @@ def set_contract_months(contracts):
         elif contract.ticker == 'CC':
             contract.set_ticker('CCK3')
             contract.conId = 494621717
+
+
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
     strategy.get_positions()
