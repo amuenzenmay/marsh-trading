@@ -72,13 +72,25 @@ def create_contracts_comm():
                           last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
                           multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=1))
+    # Milling Wheat
+    contracts.append(
+        CommodityContract('EBM', first_trade=datetime.now().replace(hour=5, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=12, minute=28, second=0, microsecond=0),
+                          first_bar=time(4, 45), last_bar=time(hour=12, minute=0),
+                          multiplier=50, months=[3, 5, 9, 12], exchange='MATIF', currency='EUR', trade_amount=1))
+    # Rapeseed
+    contracts.append(
+        CommodityContract('ECO', first_trade=datetime.now().replace(hour=5, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=12, minute=28, second=0, microsecond=0),
+                          first_bar=time(4, 45), last_bar=time(hour=12, minute=0),
+                          multiplier=50, months=[2, 5, 8, 11], exchange='MATIF', currency='EUR', trade_amount=1))
 
     # # Silver December
     contracts.append(
         CommodityContract('SI', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
-                          multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=3))
+                          multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=2))
 
     # # GOLD October
     # contracts.append(
@@ -144,9 +156,9 @@ def create_contracts_comm():
 
     # # Coffee December (Cut off at 12:27)
     contracts.append(
-         CommodityContract('KC', first_trade=datetime.now().replace(hour=5, minute=30, second=0, microsecond=0),
+         CommodityContract('KC', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
                            last_trade=datetime.now().replace(hour=12, minute=28, second=0, microsecond=0),
-                           first_bar=time(5, 0), last_bar=time(hour=12, minute=0),
+                           first_bar=time(7, 0), last_bar=time(hour=12, minute=0),
                            multiplier=37500, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
 
     # # Cotton March (Cut off at 13:17)
@@ -156,18 +168,18 @@ def create_contracts_comm():
                           first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
                           multiplier=50000, months=[3, 5, 7, 12], exchange='NYBOT', trade_amount=1))
 
-    #                    multiplier=50000, months=[3, 5, 7, 12], exchange='NYBOT'))
-    # # # Cocoa December (Cut off at 12:27)
-    # contracts.append(
-    #     CommodityContract('CC', first_trade=time(hour=4, minute=0), last_trade=time(hour=12, minute=27),
-    #                    first_bar=time(3, 45), last_bar=time(hour=12, minute=0),
-    #                    multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT'))
+    # # Cocoa December (Cut off at 12:27)
+    contracts.append(
+        CommodityContract('CC', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
+                          first_bar=time(3, 30), last_bar=time(hour=11, minute=30),
+                          multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
 
     # # Sugar March (Cut off at 11:57)
     contracts.append(
-        CommodityContract('SB', first_trade=datetime.now().replace(hour=3, minute=0, second=0, microsecond=0),
+        CommodityContract('SB', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=58, second=0, microsecond=0),
-                          first_bar=time(2, 30), last_bar=time(hour=11, minute=30),
+                          first_bar=time(7, 0), last_bar=time(hour=11, minute=30),
                           multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=1))
     return contracts
 
@@ -222,6 +234,15 @@ def set_contract_months(contracts):
         elif contract.ticker == 'GF':
             contract.set_ticker('GFK3')
             contract.conId = 564396125
+        elif contract.ticker == 'EBM':
+            contract.set_ticker('EBMK3')
+            contract.conId = 421632282
+        elif contract.ticker == 'ECO':
+            contract.set_ticker('ECOK3')
+            contract.conId = 453276905
+        elif contract.ticker == 'CC':
+            contract.set_ticker('CCK3')
+            contract.conId = 494621717
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
     strategy.get_positions()
@@ -373,7 +394,7 @@ if __name__ == '__main__':
 
     # curr_endTime = datetime.now().replace(hour=16, minute=15, second=0, microsecond=0) + timedelta(days=1)
     # curr_startTime = datetime.now().replace(hour=16, minute=30, second=0, microsecond=0)
-    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=240000, order_type='Market',
+    curr_strategy = CurrencyStrategy(app=app, account='U11095454', notional=0, order_type='Market',
                                      day_algo_time=20, limit_time=1500,
                                      barType='MIDPOINT')
     curr_strategy.set_start_time()
