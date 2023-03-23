@@ -1397,8 +1397,14 @@ class CommodityStrategy(ThirtyMin):
             # else:
             #     curr_local_symbol = tick
             #     next_local_symbol = con.next_tick
+
+            # The following contracts have symbols that are different that simply omitting the month codes
+            if tick[:2] in ['ZC', 'ZL', 'ZW', 'ZM', 'ZS', 'SI']:
+                symbol = tick[:2]
+            else:
+                symbol = con.ticker[:-2]
             curr_local_symbol = tick
-            ibapi_contract = self.app.Future_contract(con.ticker[:-2], curr_local_symbol, con.multiplier,
+            ibapi_contract = self.app.Future_contract(symbol, curr_local_symbol, con.multiplier,
                                                       exchange=con.exchange, currency=con.currency,
                                                       con_id=con.data_id, data_range=(con.firstBar, con.lastBar))
             # next_ib_contract = self.app.Future_contract(con.ticker[:-2], next_local_symbol, con.multiplier,
