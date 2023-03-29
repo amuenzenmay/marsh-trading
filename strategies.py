@@ -1422,9 +1422,9 @@ class CommodityStrategy(ThirtyMin):
 
     def set_start_time(self):
         if datetime.now().time() > time(15, 45):
-            self.startTime = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0) + timedelta(days=1)
+            self.startTime = datetime.now().replace(hour=4, minute=0, second=0, microsecond=0) + timedelta(days=1)
         else:
-            self.startTime = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
+            self.startTime = datetime.now().replace(hour=4, minute=0, second=0, microsecond=0)
 
 
 class CurrencyStrategy(Strategy):

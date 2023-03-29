@@ -287,7 +287,7 @@ def contract_iteration(strategy, contract):
         t.sleep(sec)
 
     strategy.get_bar_data(contract)
-    if contract.data is not None and 'SIL' in contract.ticker:
+    if contract.data is not None and (('ECO' in contract.ticker) or ('SIL' in contract.ticker)):
         ticker_time = contract.ticker + ': ' + str(contract.position) + '\t' + datetime.now().strftime("%H:%M:%S")
         try:
             # Avoid "Gaps in blk ref_locs". If it does happen in the print, re-request data and move on
