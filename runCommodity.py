@@ -91,12 +91,19 @@ def create_contracts_comm():
                           last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
                           multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=2))
+    # # Crude December
+    contracts.append(
+        CommodityContract('MCL', first_trade=datetime.now().replace(hour=5, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
+                          first_bar=time(5, 0), last_bar=time(hour=14, minute=30),
+                          multiplier=100, months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], exchange='NYMEX', trade_amount=4))
 
     # # GOLD October
-    # contracts.append(
-    #     CommodityContract('GC', first_trade=time(hour=9, minute=0), last_trade=time(hour=15, minute=30),
-    #                    first_bar=time(8, 30), last_bar=time(hour=15, minute=0),
-    #                    multiplier=100, months=[2, 4, 6, 8, 12], exchange='NYMEX'))
+    contracts.append(
+        CommodityContract('MGC', first_trade=datetime.now().replace(hour=5, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
+                          first_bar=time(5, 0), last_bar=time(hour=14, minute=30),
+                          multiplier=10, months=[2, 4, 6, 8, 10, 12], exchange='COMEX', trade_amount=5))
 
     # # Lean Hogs October (RTH actually goes to 13:05)
     contracts.append(
@@ -243,6 +250,12 @@ def set_contract_months(contracts):
         elif contract.ticker == 'CC':
             contract.set_ticker('CCK3')
             contract.conId = 494621717
+        elif contract.ticker == 'MCL':
+            contract.set_ticker('MCLK3')
+            contract.conId = 557340893
+        elif contract.ticker == 'MGC':
+            contract.set_ticker('MGCM3')
+            contract.conId = 493857816
 
 
 def strategy_iteration(strategy):
