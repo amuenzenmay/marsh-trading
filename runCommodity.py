@@ -96,7 +96,7 @@ def create_contracts_comm():
         CommodityContract('MCL', first_trade=datetime.now().replace(hour=5, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=14, minute=30, second=0, microsecond=0),
                           first_bar=time(5, 0), last_bar=time(hour=14, minute=30),
-                          multiplier=100, months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], exchange='NYMEX', trade_amount=4))
+                          multiplier=100, months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], exchange='NYMEX', trade_amount=2))
 
     # # GOLD October
     contracts.append(

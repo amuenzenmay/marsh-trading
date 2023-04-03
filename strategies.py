@@ -768,16 +768,15 @@ class VixThirtyMin(ThirtyMin):
         contract.lastClose = nearestNickel
 
     def calculate_moving_averages(self, contract):
-        """Calculate the 10 weighted moving average of close prices
-        """
-        closePrices = contract.data['Close']
-        averages = [None] * 9
-        for i in range(9, len(closePrices)):  # Start at index 9 (10th index)
-            averages.append(
-                (10 * closePrices[i] + 9 * closePrices[i - 1] + 8 * closePrices[i - 2] + 7 * closePrices[i - 3]
-                 + 6 * closePrices[i - 4] + 5 * closePrices[i - 5] + 4 * closePrices[i - 6] + 3 * closePrices[i - 7]
-                 + 2 * closePrices[i - 8] + closePrices[i - 9]) / 55)
-        contract.data[self.average] = averages
+        contract.data[self.average] = contract.data['Close'].rolling(10).mean()
+        i = 0
+        while self.average not in contract.data.columns or pd.isnull(contract.data[self.average].iloc[-8]):
+            if i > 60:
+                print('{} averages not calculating, attempting manual calculation'.format(contract.ticker))
+                self.manual_sma(contract, 10, 'Close', self.average)
+                break
+            t.sleep(0.25)
+            i += 1
 
     def create_ibapi_contracts(self):
         for tick in self.contracts.keys():
@@ -1370,16 +1369,15 @@ class CommodityStrategy(ThirtyMin):
             print('Invalid Order Type')
 
     def calculate_moving_averages(self, contract):
-        """Calculate the 10 weighted moving average of close prices
-        """
-        closePrices = contract.data['Close']
-        averages = [None] * 9
-        for i in range(9, len(closePrices)):  # Start at index 9 (10th index)
-            averages.append(
-                (10 * closePrices[i] + 9 * closePrices[i - 1] + 8 * closePrices[i - 2] + 7 * closePrices[i - 3]
-                 + 6 * closePrices[i - 4] + 5 * closePrices[i - 5] + 4 * closePrices[i - 6] + 3 * closePrices[i - 7]
-                 + 2 * closePrices[i - 8] + closePrices[i - 9]) / 55)
-        contract.data[self.average] = averages
+        contract.data[self.average] = contract.data['Close'].rolling(10).mean()
+        i = 0
+        while self.average not in contract.data.columns or pd.isnull(contract.data[self.average].iloc[-8]):
+            if i > 60:
+                print('{} averages not calculating, attempting manual calculation'.format(contract.ticker))
+                self.manual_sma(contract, 10, 'Close', self.average)
+                break
+            t.sleep(0.25)
+            i += 1
 
     def shorten_positions(self):
         for tick in self.contracts.keys():
