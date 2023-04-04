@@ -377,7 +377,7 @@ def start_threads(strategies):
 
 if __name__ == '__main__':
     # startIBConnection(False)
-    while datetime.now().replace(second=0, microsecond=0).time() < time(5, 0):
+    while datetime.now().replace(second=0, microsecond=0).time() < time(3, 0):
         t.sleep(1)
     c = Connection(live=True)
     app = c.app
