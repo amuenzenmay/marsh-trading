@@ -15,6 +15,8 @@ app = IBapi()
 Currencies = {'USD.JPY': 229484467, 'USD.ZAR': 230949949, 'GBP.USD': 230949810, 'GBP.JPY': 229484470,
               'GBP.ZAR': 230949991, 'EUR.USD': 143916318, 'EUR.JPY': 229484473, 'EUR.GBP': 143916322,
               'EUR.ZAR': 230949992}
+
+
 # Currencies = {'USD.JPY': 229484467, 'EUR.JPY': 229484473}
 
 
@@ -67,7 +69,7 @@ def create_contracts_comm():
     contracts = []
 
     # Platinum October
-    #contracts.append(
+    # contracts.append(
     #    CommodityContract('PL', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
     #                      last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
     #                      first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
@@ -89,13 +91,15 @@ def create_contracts_comm():
         CommodityContract('W', first_trade=datetime.now().replace(hour=3, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
                           first_bar=time(2, 45), last_bar=time(hour=11, minute=30),
-                          multiplier=50, months=[3, 5, 8, 10, 12], exchange='ICEEUSOFT', currency='USD', trade_amount=1))
+                          multiplier=50, months=[3, 5, 8, 10, 12], exchange='ICEEUSOFT', currency='USD',
+                          trade_amount=1))
     # London Coffee
     contracts.append(
         CommodityContract('D', first_trade=datetime.now().replace(hour=3, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
                           first_bar=time(3, 30), last_bar=time(hour=11, minute=0),
-                          multiplier=10, months=[1, 3, 5, 7, 9, 11], exchange='ICEEUSOFT', currency='USD', trade_amount=2))
+                          multiplier=10, months=[1, 3, 5, 7, 9, 11], exchange='ICEEUSOFT', currency='USD',
+                          trade_amount=2))
     # London Cocoa
     contracts.append(
         CommodityContract('C', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
@@ -110,7 +114,7 @@ def create_contracts_comm():
                           first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
                           multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=1))
     # # Crude December
-    #contracts.append(
+    # contracts.append(
     #    CommodityContract('MCL', first_trade=datetime.now().replace(hour=3, minute=30, second=0, microsecond=0),
     #                      last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
     #                      first_bar=time(3, 0), last_bar=time(hour=13, minute=0),
@@ -180,7 +184,7 @@ def create_contracts_comm():
                           multiplier=100, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=1))
 
     # # Coffee December (Cut off at 12:27)
-    #contracts.append(
+    # contracts.append(
     #     CommodityContract('KC', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
     #                       last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
     #                       first_bar=time(7, 0), last_bar=time(hour=12, minute=0),
@@ -200,7 +204,7 @@ def create_contracts_comm():
                           first_bar=time(7, 0), last_bar=time(hour=11, minute=30),
                           multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
     # # Cocoa December (Cut off at 12:27)
-    #contracts.append(
+    # contracts.append(
     #    CommodityContract('HO', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
     #                      last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
     #                      first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
@@ -271,8 +275,10 @@ def set_contract_months(contracts):
         elif contract.ticker == 'CC':
             contract.set_ticker('CCN3')
             contract.conId = 506216915
-        elif contract.ticker == 'RC':
+        elif contract.ticker == 'D':
+            # Use this format for contracts with symbols and localSymbols that don't match
             contract.set_ticker('RCN3')
+            contract.ib_ticker = ['D', 'RCN3']
             contract.conId = 529027957
         elif contract.ticker == 'MGC':
             contract.set_ticker('MGCM3')
@@ -283,6 +289,7 @@ def set_contract_months(contracts):
         elif contract.ticker == 'C':
             contract.set_ticker('CN3')
             contract.conId = 503161328
+
 
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
@@ -441,7 +448,6 @@ if __name__ == '__main__':
     curr_strategy.set_start_time()
     curr_strategy.set_end_time()
     curr_strategy.set_contracts(curr_contracts)
-
 
     for tick in curr_strategy.contracts:
         con = curr_strategy.contracts[tick]

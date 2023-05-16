@@ -1399,6 +1399,8 @@ class CommodityStrategy(ThirtyMin):
             # The following contracts have symbols that are different that simply omitting the month codes
             if tick[:2] in ['ZC', 'ZL', 'ZW', 'ZM', 'ZS', 'SI']:
                 symbol = tick[:2]
+            elif tick[:2] in ['RC']:
+                symbol = con.ib_ticker[0]
             else:
                 symbol = con.ticker[:-2]
             curr_local_symbol = tick
