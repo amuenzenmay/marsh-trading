@@ -155,7 +155,7 @@ class FutureContract(Contract):
         """Return the IB formatting for grain contracts"""
         if tick is None:
             tick = self.ticker
-        if tick[:2] not in ['ZC', 'ZS', 'ZL', 'ZM', 'ZW']:
+        if tick[:2] not in ['ZC', 'ZS', 'ZL', 'ZM', 'ZW', 'KE']:
             return tick
         month_code = self.month_map[tick[2]]
         ib_month = self.grain_month_map[month_code]
