@@ -72,7 +72,7 @@ class Order:
         if self.contract.shortAlgo and not self.contract.working_bars:
             # NOT the last trade of the day, but shorter duration is required leading into the last trade
             # Ex: It is 13:00, last trade should be 13:12, but normal duration of 20 minutes would be too long.
-            if self.contract.ticker[:2] in ['ZC', 'ZS', 'ZW', 'ZL', 'ZM']:
+            if self.contract.ticker[:2] in ['ZC', 'ZS', 'ZW', 'ZL', 'ZM', 'KE']:
                 return 13  # 13 minute duration for the grain commodities at 13:00
             elif self.contract.ticker[:2] in ['CT']:
                 return 15  # 15 minute duration for CT at the 13:00 bar
@@ -80,7 +80,7 @@ class Order:
         elif self.contract.shortAlgo:
             if self.contract.ticker[:2] in ['HE', 'LE', 'GF']:
                 return 3
-            elif self.contract.ticker[:2] in ['ZC', 'ZS', 'ZW', 'ZL', 'ZM']:
+            elif self.contract.ticker[:2] in ['ZC', 'ZS', 'ZW', 'ZL', 'ZM', 'KE']:
                 return 4
             elif self.contract.ticker[:2] in ['KC', 'CT', 'SB']:
                 return 2

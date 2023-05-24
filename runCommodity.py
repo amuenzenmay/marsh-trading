@@ -325,7 +325,7 @@ def contract_iteration(strategy, contract):
         return
 
     current_time = datetime.now().replace(second=0, microsecond=0).time()
-    if current_time == contract.lastBar and contract.ticker[:2] in ['ZC', 'ZS', 'ZW', 'ZL', 'ZM', 'CT']:
+    if current_time == contract.lastBar and contract.ticker[:2] in ['ZC', 'ZS', 'ZW', 'ZL', 'ZM', 'CT', 'KE']:
         contract.shortAlgo = True
 
     if contract.last_trade():

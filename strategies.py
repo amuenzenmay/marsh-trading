@@ -1334,7 +1334,7 @@ class CommodityStrategy(ThirtyMin):
         print(msg)
 
     def convert_pricing(self, contract):
-        if contract.ticker[:2] in ['ZS', 'ZW', 'ZC', 'ZL', 'HE', 'LE', 'GF']:
+        if contract.ticker[:2] in ['ZS', 'ZW', 'ZC', 'ZL', 'HE', 'LE', 'GF', 'KE']:
             ibClose = contract.lastClose
             rediPrice = ibClose / 100
             contract.lastClose = rediPrice
@@ -1397,7 +1397,7 @@ class CommodityStrategy(ThirtyMin):
             #     next_local_symbol = con.next_tick
 
             # The following contracts have symbols that are different that simply omitting the month codes
-            if tick[:2] in ['ZC', 'ZL', 'ZW', 'ZM', 'ZS', 'SI']:
+            if tick[:2] in ['ZC', 'ZL', 'ZW', 'ZM', 'ZS', 'SI', 'KE']:
                 symbol = tick[:2]
             elif tick[:2] in ['RC']:
                 symbol = con.ib_ticker[0]
