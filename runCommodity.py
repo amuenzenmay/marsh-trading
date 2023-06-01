@@ -109,9 +109,9 @@ def create_contracts_comm():
 
     # # Silver December
     contracts.append(
-        CommodityContract('SI', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+        CommodityContract('SI', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
-                          first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
+                          first_bar=time(6, 0), last_bar=time(hour=13, minute=0),
                           multiplier=1000, months=[3, 7, 9, 12], exchange='COMEX', trade_amount=1))
     # # Crude December
     contracts.append(
@@ -122,9 +122,9 @@ def create_contracts_comm():
 
     # # GOLD October
     contracts.append(
-        CommodityContract('MGC', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+        CommodityContract('MGC', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
-                          first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
+                          first_bar=time(6, 0), last_bar=time(hour=13, minute=0),
                           multiplier=10, months=[2, 4, 6, 8, 10, 12], exchange='COMEX', trade_amount=2))
 
     # # Lean Hogs October (RTH actually goes to 13:05)
@@ -184,11 +184,11 @@ def create_contracts_comm():
                           multiplier=100, months=[3, 5, 7, 12], exchange='CBOT', trade_amount=1))
 
     # # Coffee December (Cut off at 12:27)
-    # contracts.append(
-    #     CommodityContract('KC', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
-    #                       last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
-    #                       first_bar=time(7, 0), last_bar=time(hour=12, minute=0),
-    #                       multiplier=37500, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
+    contracts.append(
+         CommodityContract('HG', first_trade=datetime.now().replace(hour=1, minute=30, second=0, microsecond=0),
+                           last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
+                           first_bar=time(1, 0), last_bar=time(hour=11, minute=30),
+                           multiplier=25000, months=[4, 5, 6, 7, 8, 9, 10, 11, 12], exchange='COMEX', trade_amount=1))
 
     # # Cotton March (Cut off at 13:17)
     contracts.append(
@@ -281,8 +281,8 @@ def set_contract_months(contracts):
             contract.ib_ticker = ['D', 'RCN3']
             contract.conId = 529027957
         elif contract.ticker == 'MGC':
-            contract.set_ticker('MGCM3')
-            contract.conId = 493857816
+            contract.set_ticker('MGCQ3')
+            contract.conId = 517660681
         elif contract.ticker == 'W':
             contract.set_ticker('WQ3')
             contract.conId = 526821468
@@ -295,6 +295,9 @@ def set_contract_months(contracts):
         elif contract.ticker == 'KE':
             contract.set_ticker('KE   JUL 23')
             contract.conId = 434140062
+        elif contract.ticker == 'HG':
+            contract.set_ticker('HGN3')
+            contract.conId = 327859327
 
 
 def strategy_iteration(strategy):
