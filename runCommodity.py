@@ -79,7 +79,7 @@ def create_contracts_comm():
         CommodityContract('EBM', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
                           first_bar=time(3, 45), last_bar=time(hour=11, minute=0),
-                          multiplier=50, months=[3, 5, 9, 12], exchange='MATIF', currency='EUR', trade_amount=2))
+                          multiplier=50, months=[3, 5, 9, 12], exchange='MATIF', currency='EUR', trade_amount=4))
     # Rapeseed
     contracts.append(
         CommodityContract('ECO', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
@@ -118,7 +118,7 @@ def create_contracts_comm():
         CommodityContract('RS', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
-                          multiplier=20, months=[1, 3, 5, 7, 11], exchange='NYBOT', currency='CAD', trade_amount=2))
+                          multiplier=20, months=[1, 3, 5, 7, 11], exchange='NYBOT', currency='CAD', trade_amount=4))
 
     # # GOLD October
     contracts.append(
@@ -252,8 +252,8 @@ def set_contract_months(contracts):
             contract.set_ticker('HEM3')
             contract.conId = 532513468
         elif contract.ticker == 'LE':
-            contract.set_ticker('LEM3')
-            contract.conId = 535972651
+            contract.set_ticker('LEQ3')
+            contract.conId = 547336141
         elif contract.ticker == 'SB':
             contract.set_ticker('SBN3')
             contract.conId = 438014985
