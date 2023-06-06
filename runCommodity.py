@@ -16,7 +16,6 @@ Currencies = {'USD.JPY': 229484467, 'USD.ZAR': 230949949, 'GBP.USD': 230949810, 
               'GBP.ZAR': 230949991, 'EUR.USD': 143916318, 'EUR.JPY': 229484473, 'EUR.GBP': 143916322,
               'EUR.ZAR': 230949992}
 
-
 # Currencies = {'USD.JPY': 229484467, 'EUR.JPY': 229484473}
 
 
@@ -419,7 +418,8 @@ def start_threads(strategies):
 
 if __name__ == '__main__':
     # startIBConnection(False)
-    while datetime.now().replace(second=0, microsecond=0).time() < time(3, 0):
+    # Wait to start IB connection until the first product needs it
+    while datetime.now().replace(second=0, microsecond=0).time() < time(1, 30):
         t.sleep(1)
     c = Connection(live=True)
     app = c.app
