@@ -69,43 +69,43 @@ def create_contracts_comm():
     contracts = []
 
     # Platinum October
-    # contracts.append(
-    #    CommodityContract('PL', first_trade=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
-    #                      last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
-    #                      first_bar=time(7, 0), last_bar=time(hour=13, minute=0),
-    #                      multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=1))
+    contracts.append(
+        CommodityContract('KC', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
+                          first_bar=time(6, 0), last_bar=time(hour=12, minute=0),
+                          multiplier=37500, months=[1, 4, 7, 9, 10], exchange='NYBOT', trade_amount=1))
     # Milling Wheat
     contracts.append(
         CommodityContract('EBM', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
                           first_bar=time(3, 45), last_bar=time(hour=11, minute=0),
-                          multiplier=50, months=[3, 5, 9, 12], exchange='MATIF', currency='EUR', trade_amount=4))
+                          multiplier=50, months=[3, 5, 9, 12], exchange='MATIF', currency='EUR', trade_amount=2))
     # Rapeseed
     contracts.append(
         CommodityContract('ECO', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
                           first_bar=time(3, 45), last_bar=time(hour=11, minute=0),
-                          multiplier=50, months=[2, 5, 8, 11], exchange='MATIF', currency='EUR', trade_amount=1))
+                          multiplier=50, months=[2, 5, 8, 11], exchange='MATIF', currency='EUR', trade_amount=2))
     # London Sugar
     contracts.append(
-        CommodityContract('W', first_trade=datetime.now().replace(hour=3, minute=0, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
-                          first_bar=time(2, 45), last_bar=time(hour=11, minute=30),
-                          multiplier=50, months=[3, 5, 8, 10, 12], exchange='ICEEUSOFT', currency='USD',
-                          trade_amount=1))
+        CommodityContract('MCL', first_trade=datetime.now().replace(hour=1, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
+                          first_bar=time(1, 0), last_bar=time(hour=13, minute=0),
+                          multiplier=100, months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], exchange='NYMEX', currency='USD',
+                          trade_amount=3))
     # London Coffee
     contracts.append(
         CommodityContract('D', first_trade=datetime.now().replace(hour=3, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
                           first_bar=time(3, 0), last_bar=time(hour=11, minute=0),
                           multiplier=10, months=[1, 3, 5, 7, 9, 11], exchange='ICEEUSOFT', currency='USD',
-                          trade_amount=2))
+                          trade_amount=1))
     # London Cocoa
     contracts.append(
         CommodityContract('C', first_trade=datetime.now().replace(hour=4, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
                           first_bar=time(3, 30), last_bar=time(hour=10, minute=30),
-                          multiplier=10, months=[3, 5, 7, 9, 12], exchange='ICEEUSOFT', currency='GBP', trade_amount=2))
+                          multiplier=10, months=[3, 5, 7, 9, 12], exchange='ICEEUSOFT', currency='GBP', trade_amount=1))
 
     # # Silver December
     contracts.append(
@@ -130,21 +130,21 @@ def create_contracts_comm():
     # # Lean Hogs October (RTH actually goes to 13:05)
     contracts.append(
         CommodityContract('HE', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=12, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
                           multiplier=40000, months=[2, 4, 6, 7, 8, 10, 12], exchange='CME', trade_amount=1))
 
     # # Live Cattle October (RTH actually goes to 13:05)
     contracts.append(
         CommodityContract('LE', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=12, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
                           multiplier=40000, months=[2, 4, 6, 8, 10, 12], exchange='CME', trade_amount=1))
 
     # # Feeder Cattle November (RTH actually goes to 13:05)
     contracts.append(
         CommodityContract('GF', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=12, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=13, minute=0, second=0, microsecond=0),
                           first_bar=time(8, 30), last_bar=time(hour=12, minute=30),
                           multiplier=50000, months=[1, 3, 5, 8, 9, 11], exchange='CME', trade_amount=1))
 
@@ -185,10 +185,10 @@ def create_contracts_comm():
 
     # # Coffee December (Cut off at 12:27)
     contracts.append(
-         CommodityContract('HG', first_trade=datetime.now().replace(hour=1, minute=30, second=0, microsecond=0),
-                           last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
-                           first_bar=time(1, 0), last_bar=time(hour=11, minute=30),
-                           multiplier=25000, months=[4, 5, 6, 7, 8, 9, 10, 11, 12], exchange='COMEX', trade_amount=1))
+         CommodityContract('PL', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
+                           last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
+                           first_bar=time(6, 0), last_bar=time(hour=13, minute=0),
+                           multiplier=50, months=[1, 4, 7, 10], exchange='NYMEX', trade_amount=1))
 
     # # Cotton March (Cut off at 13:17)
     contracts.append(
@@ -211,11 +211,11 @@ def create_contracts_comm():
                           multiplier=5000, months=[3, 5, 7, 9, 12], exchange='CBOT', trade_amount=1))
 
     # # Sugar March (Cut off at 11:57)
-    contracts.append(
-        CommodityContract('SB', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
-                          first_bar=time(6, 0), last_bar=time(hour=11, minute=30),
-                          multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=1))
+    #contracts.append(
+    #    CommodityContract('SB', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
+    #                      last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
+    #                      first_bar=time(6, 0), last_bar=time(hour=11, minute=30),
+    #                      multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=1))
     return contracts
 
 
@@ -228,14 +228,14 @@ def set_contract_months(contracts):
     for contract in contracts:
         contract.allowInceptions = True
         if contract.ticker == 'ZM':
-            contract.set_ticker('ZM   JUL 23')
-            contract.conId = 395594113
+            contract.set_ticker('ZM   DEC 23')
+            contract.conId = 395594128
         elif contract.ticker == 'ZL':
             contract.set_ticker('ZL   JUL 23')
             contract.conId = 395594042
         elif contract.ticker == 'ZW':
-            contract.set_ticker('ZW   JUL 23')
-            contract.conId = 434140032
+            contract.set_ticker('ZW   SEP 23')
+            contract.conId = 502252416
         elif contract.ticker == 'ZS':
             contract.set_ticker('ZS   JUL 23')
             contract.conId = 391418440
@@ -245,24 +245,24 @@ def set_contract_months(contracts):
         elif contract.ticker == 'SI':
             contract.set_ticker('SILN3')
             contract.conId = 327859199
-        elif contract.ticker == 'PL':
-            contract.set_ticker('PLN3')
-            contract.conId = 558698339
+        elif contract.ticker == 'KC':
+            contract.set_ticker('KCU3')
+            contract.conId = 448092037
         elif contract.ticker == 'HE':
-            contract.set_ticker('HEM3')
-            contract.conId = 532513468
+            contract.set_ticker('HEN3')
+            contract.conId = 544436082
         elif contract.ticker == 'LE':
             contract.set_ticker('LEQ3')
             contract.conId = 547336141
-        elif contract.ticker == 'SB':
-            contract.set_ticker('SBN3')
-            contract.conId = 438014985
+        elif contract.ticker == 'PL':
+            contract.set_ticker('PLV3')
+            contract.conId = 576007397
         elif contract.ticker == 'KC':
-            contract.set_ticker('KCN3')
+            contract.set_ticker('KCU3')
             contract.conId = 438014974
         elif contract.ticker == 'CT':
-            contract.set_ticker('CTN3')
-            contract.conId = 438014979
+            contract.set_ticker('CTZ3')
+            contract.conId = 463604965
         elif contract.ticker == 'GF':
             contract.set_ticker('GFQ3')
             contract.conId = 581820474
@@ -273,31 +273,28 @@ def set_contract_months(contracts):
             contract.set_ticker('ECOQ3')
             contract.conId = 468987027
         elif contract.ticker == 'CC':
-            contract.set_ticker('CCN3')
-            contract.conId = 506216915
+            contract.set_ticker('CCU3')
+            contract.conId = 518371786
         elif contract.ticker == 'D':
             # Use this format for contracts with symbols and localSymbols that don't match
-            contract.set_ticker('RCN3')
-            contract.ib_ticker = ['D', 'RCN3']
-            contract.conId = 529027957
+            contract.set_ticker('RCU3')
+            contract.ib_ticker = ['D', 'RCU3']
+            contract.conId = 541346252
         elif contract.ticker == 'MGC':
             contract.set_ticker('MGCQ3')
             contract.conId = 517660681
-        elif contract.ticker == 'W':
-            contract.set_ticker('WQ3')
-            contract.conId = 526821468
         elif contract.ticker == 'C':
-            contract.set_ticker('CN3')
-            contract.conId = 503161328
+            contract.set_ticker('CU3')
+            contract.conId = 514764868
         elif contract.ticker == 'RS':
-            contract.set_ticker('RSN3')
-            contract.conId = 491590437
+            contract.set_ticker('RSX3')
+            contract.conId = 502497408
         elif contract.ticker == 'KE':
-            contract.set_ticker('KE   JUL 23')
-            contract.conId = 434140062
-        elif contract.ticker == 'HG':
-            contract.set_ticker('HGN3')
-            contract.conId = 327859327
+            contract.set_ticker('KE   SEP 23')
+            contract.conId = 502252381
+        elif contract.ticker == 'MCL':
+            contract.set_ticker('MCLQ3')
+            contract.conId = 574813683
 
 
 def strategy_iteration(strategy):
@@ -342,7 +339,7 @@ def contract_iteration(strategy, contract):
         t.sleep(sec)
 
     strategy.get_bar_data(contract)
-    if contract.data is not None and (('ECO' in contract.ticker) or ('SIL' in contract.ticker)):
+    if contract.data is not None and (('ECO' in contract.ticker) or ('HE' in contract.ticker)):
         ticker_time = contract.ticker + ': ' + str(contract.position) + '\t' + datetime.now().strftime("%H:%M:%S")
         try:
             # Avoid "Gaps in blk ref_locs". If it does happen in the print, re-request data and move on
@@ -444,7 +441,7 @@ if __name__ == '__main__':
 
     # com_endTime = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
     com_strategy = CommodityStrategy(app=app, account='U11095454', order_type='Adaptive',
-                                     day_algo_time=10)
+                                     day_algo_time=25)
     com_strategy.set_contracts(com_contracts, 10)
     com_strategy.set_start_time()
     com_strategy.set_end_time()
