@@ -91,7 +91,7 @@ def create_contracts_comm():
                           last_trade=datetime.now().replace(hour=13, minute=30, second=0, microsecond=0),
                           first_bar=time(1, 0), last_bar=time(hour=13, minute=0),
                           multiplier=100, months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], exchange='NYMEX', currency='USD',
-                          trade_amount=3))
+                          trade_amount=5))
     # London Coffee
     contracts.append(
         CommodityContract('D', first_trade=datetime.now().replace(hour=3, minute=30, second=0, microsecond=0),
@@ -199,7 +199,7 @@ def create_contracts_comm():
     # # Cocoa December (Cut off at 12:27)
     contracts.append(
         CommodityContract('CC', first_trade=datetime.now().replace(hour=5, minute=30, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
                           first_bar=time(5, 0), last_bar=time(hour=11, minute=30),
                           multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
     # # KC Wheat
@@ -230,17 +230,17 @@ def set_contract_months(contracts):
             contract.set_ticker('ZM   DEC 23')
             contract.conId = 395594128
         elif contract.ticker == 'ZL':
-            contract.set_ticker('ZL   JUL 23')
-            contract.conId = 395594042
+            contract.set_ticker('ZL   DEC 23')
+            contract.conId = 395594056
         elif contract.ticker == 'ZW':
             contract.set_ticker('ZW   SEP 23')
             contract.conId = 502252416
         elif contract.ticker == 'ZS':
-            contract.set_ticker('ZS   JUL 23')
-            contract.conId = 391418440
+            contract.set_ticker('ZS   NOV 23')
+            contract.conId = 391418454
         elif contract.ticker == 'ZC':
-            contract.set_ticker('ZC   JUL 23')
-            contract.conId = 395594017
+            contract.set_ticker('ZC   DEC 23')
+            contract.conId = 395594027
         elif contract.ticker == 'SI':
             contract.set_ticker('SILN3')
             contract.conId = 327859199
