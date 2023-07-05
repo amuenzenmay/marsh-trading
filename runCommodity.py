@@ -201,7 +201,7 @@ def create_contracts_comm():
         CommodityContract('CC', first_trade=datetime.now().replace(hour=5, minute=30, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=12, minute=0, second=0, microsecond=0),
                           first_bar=time(5, 0), last_bar=time(hour=11, minute=30),
-                          multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=1))
+                          multiplier=10, months=[3, 5, 7, 9, 12], exchange='NYBOT', trade_amount=2))
     # # KC Wheat
     contracts.append(
         CommodityContract('KE', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
@@ -242,8 +242,8 @@ def set_contract_months(contracts):
             contract.set_ticker('ZC   DEC 23')
             contract.conId = 395594027
         elif contract.ticker == 'SI':
-            contract.set_ticker('SILN3')
-            contract.conId = 327859199
+            contract.set_ticker('SILU3')
+            contract.conId = 588626169
         elif contract.ticker == 'KC':
             contract.set_ticker('KCU3')
             contract.conId = 448092037
