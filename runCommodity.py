@@ -228,12 +228,12 @@ def create_contracts_comm():
 #                      last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
 #                      first_bar=time(6, 0), last_bar=time(hour=11, minute=30),
 #                      multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=1))
-    # Micro Bitcoin
+    # RUT2K
     contracts.append(
-        CommodityContract('MBT', first_trade=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
-                          last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
-                          first_bar=time(1, 30), last_bar=time(hour=15, minute=0),
-                          multiplier=.1, months=[1, 2, 3, 4, 5, 12], exchange='CME', trade_amount=2))
+        CommodityContract('RTY', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
+                          first_bar=time(8, 30), last_bar=time(hour=14, minute=0),
+                          multiplier=.1, months=[3, 6, 9, 12], exchange='CME', trade_amount=1))
 
     return contracts
 
@@ -321,9 +321,9 @@ def set_contract_months(contracts):
             contract.set_ticker('FBTP 20240307 M')
             contract.ib_ticker = ['BTP', 'FBTP 20240307 M']
             contract.conId = 636158529
-        elif contract.ticker == 'MBT':
-            contract.set_ticker('MBTZ3')
-            contract.conId = 535967791
+        elif contract.ticker == 'RTY':
+            contract.set_ticker('RTYZ3')
+            contract.conId = 586139869
 
 
 def strategy_iteration(strategy):
