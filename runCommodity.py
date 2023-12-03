@@ -306,14 +306,14 @@ def set_contract_months(contracts):
             contract.conId = 603849561
         elif contract.ticker == 'DAX':
             # Use this format for contracts with symbols and localSymbols that don't match
-            contract.set_ticker('FDXM  DEC  23')
-            contract.ib_ticker = ['DAX', 'FDXM  DEC  23']
+            contract.set_ticker('FDXM DEC 23')
+            contract.ib_ticker = ['DAX', 'FDXM DEC 23']
             contract.conId = 540729514
         elif contract.ticker == 'BTP':
             # Use this format for contracts with symbols and localSymbols that don't match
-            contract.set_ticker('FBTP 20231207M')
-            contract.ib_ticker = ['BTP', 'FBTP 20231207M']
-            contract.conId = 618685635
+            contract.set_ticker('FBTP 20240307 M')
+            contract.ib_ticker = ['BTP', 'FBTP 20240307 M']
+            contract.conId = 636158529
 
 
 def strategy_iteration(strategy):
