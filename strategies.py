@@ -1399,7 +1399,7 @@ class CommodityStrategy(ThirtyMin):
             # The following contracts have symbols that are different that simply omitting the month codes
             if tick[:2] in ['ZC', 'ZL', 'ZW', 'ZM', 'ZS', 'SI', 'KE']:
                 symbol = tick[:2]
-            elif tick[:2] in ['RC']:
+            elif tick[:2] in ['RC'] or tick[:4] in ['FDXM', 'FBTP']:
                 symbol = con.ib_ticker[0]
             else:
                 symbol = con.ticker[:-2]
