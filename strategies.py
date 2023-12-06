@@ -1109,7 +1109,7 @@ class Crypto(Strategy):
             if 'ETH' in tick:
                 con.data_contract = self.app.crypto_contract("ETH", con_id=con.data_id,
                                                              data_range=(con.firstBar, con.lastBar))
-            elif "BRR" in tick:
+            elif "MBT" in tick:
                 con.data_contract = self.app.crypto_contract("BTC", con_id=con.data_id,
                                                              data_range=(con.firstBar, con.lastBar))
             else:

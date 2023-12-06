@@ -63,13 +63,13 @@ def create_contracts_crypto():
                                   first_bar=time(1, 30),
                                   last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                                   last_bar=time(15, 1))
-    bit_contract = CryptoContract('BRR', multiplier=5, exchange='CME',
+    bit_contract = CryptoContract('MBT', multiplier=.1, exchange='CME',
                                   first_trade=datetime.now().replace(hour=2, minute=0, second=0, microsecond=0),
                                   first_bar=time(1, 30),
                                   last_trade=datetime.now().replace(hour=15, minute=30, second=0, microsecond=0),
                                   last_bar=time(15, 1))
 
-    return [eth_contract]
+    return [bit_contract]
 
 
 def set_contract_months(contracts):
