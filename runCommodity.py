@@ -209,32 +209,41 @@ def create_contracts_comm():
                           first_bar=time(8, 30), last_bar=time(hour=13, minute=0),
                           multiplier=5000, months=[3, 5, 7, 9, 12], exchange='CBOT', trade_amount=1))
     # DAX Index
-    #contracts.append(
-    #    CommodityContract('DAX', first_trade=datetime.now().replace(hour=2, minute=30, second=0, microsecond=0),
-    #                      last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
-    #                      first_bar=time(2, 0), last_bar=time(hour=10, minute=30),
-    #                      multiplier=5, months=[3, 6, 9, 12], exchange='EUREX', currency='EUR', trade_amount=1))
+    contracts.append(
+        CommodityContract('DAX', first_trade=datetime.now().replace(hour=2, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=11, minute=0, second=0, microsecond=0),
+                          first_bar=time(2, 0), last_bar=time(hour=10, minute=30),
+                          multiplier=5, months=[3, 6, 9, 12], exchange='EUREX', currency='EUR', trade_amount=1))
     # Italian Bonds
-    #contracts.append(
-    #    CommodityContract('BTP', first_trade=datetime.now().replace(hour=2, minute=30, second=0, microsecond=0),
-    #                      last_trade=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
-    #                      first_bar=time(2, 0), last_bar=time(hour=10, minute=0),
-    #                      multiplier=1000, months=[3, 6, 9, 12], exchange='EUREX', currency='EUR', trade_amount=1))
-
-
-# # Sugar March (Cut off at 11:57)
-# contracts.append(
-#    CommodityContract('SB', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
-#                      last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
-#                      first_bar=time(6, 0), last_bar=time(hour=11, minute=30),
-#                      multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=1))
+    contracts.append(
+        CommodityContract('BTP', first_trade=datetime.now().replace(hour=2, minute=30, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=10, minute=30, second=0, microsecond=0),
+                          first_bar=time(2, 0), last_bar=time(hour=10, minute=0),
+                          multiplier=1000, months=[3, 6, 9, 12], exchange='EUREX', currency='EUR', trade_amount=1))
+    # Sugar March (Cut off at 11:57)
+    # contracts.append(
+    #    CommodityContract('SB', first_trade=datetime.now().replace(hour=6, minute=30, second=0, microsecond=0),
+    #                      last_trade=datetime.now().replace(hour=11, minute=30, second=0, microsecond=0),
+    #                      first_bar=time(6, 0), last_bar=time(hour=11, minute=30),
+    #                      multiplier=112000, months=[3, 5, 7, 10], exchange='NYBOT', trade_amount=1))
     # RUT2K
     contracts.append(
-        CommodityContract('RTY', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+        CommodityContract('M2K', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
                           last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
-                          first_bar=time(8, 30), last_bar=time(hour=14, minute=0),
-                          multiplier=.1, months=[3, 6, 9, 12], exchange='CME', trade_amount=1))
-
+                          first_bar=time(8, 30), last_bar=time(hour=14, minute=30),
+                          multiplier=5, months=[3, 6, 9, 12], exchange='CME', trade_amount=3))
+    # RUT2K
+    contracts.append(
+        CommodityContract('MNQ', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
+                          first_bar=time(8, 30), last_bar=time(hour=14, minute=30),
+                          multiplier=2, months=[3, 6, 9, 12], exchange='CME', trade_amount=1))
+    # RUT2K
+    contracts.append(
+        CommodityContract('MES', first_trade=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0),
+                          last_trade=datetime.now().replace(hour=15, minute=0, second=0, microsecond=0),
+                          first_bar=time(8, 30), last_bar=time(hour=14, minute=30),
+                          multiplier=5, months=[3, 6, 9, 12], exchange='CME', trade_amount=2))
     return contracts
 
 
@@ -321,11 +330,15 @@ def set_contract_months(contracts):
             contract.set_ticker('FBTP 20240307 M')
             contract.ib_ticker = ['BTP', 'FBTP 20240307 M']
             contract.conId = 636158529
-        elif contract.ticker == 'RTY':
-            contract.set_ticker('RTYZ3')
-            contract.conId = 586139869
-
-
+        elif contract.ticker == 'M2K':
+            contract.set_ticker('M2KZ3')
+            contract.conId = 586139852
+        elif contract.ticker == 'MES':
+            contract.set_ticker('MESZ3')
+            contract.conId = 586139726
+        elif contract.ticker == 'MNQ':
+            contract.set_ticker('MNQZ3')
+            contract.conId = 586139716
 def strategy_iteration(strategy):
     """Runs the iterations of tasks that pertain to the strategy as a whole."""
     strategy.get_positions()
@@ -489,6 +502,6 @@ if __name__ == '__main__':
         con = curr_strategy.contracts[tick]
         con.notional = converter.convert('USD', con.ticker[:3], con.notional)
 
-    strategies = [com_strategy, curr_strategy]
+    strategies = [com_strategy]
     start_threads(strategies)
     app.disconnect()
